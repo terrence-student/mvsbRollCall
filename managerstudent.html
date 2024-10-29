@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生管理系統</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">學生管理系統</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:5500/managerhomepage.html">首頁</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        學生管理
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="studentDropdown">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#studentListModal">學生清單</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addStudentModal">新增學生資料</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="attendanceDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        學生出席管理
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="attendanceDropdown">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#attendanceModal">出缺席名單</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>歡迎來到學生管理系統</h1>
+        <p>請選擇上方選項進行操作。</p>
+    </div>
+
+    <div class="modal fade" id="studentListModal" tabindex="-1" role="dialog" aria-labelledby="studentListModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="studentListModalLabel">學生清單</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-primary mb-3" id="showAllStudents">顯示所有學生</button>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>學號</th>
+                                <th>姓名</th>
+                                <th>帳號</th>
+                                <th>電子郵件</th>
+                                <th>年級</th>
+                                <th>科目</th>
+                                <th>班級</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-labelledby="addStudentModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStudentModalLabel">新增學生資料</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addStudentForm">
+                        <div class="form-group">
+                            <label for="studentId">學號</label>
+                            <input type="text" class="form-control" id="studentId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentName">姓名</label>
+                            <input type="text" class="form-control" id="studentName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentUsername">帳號</label>
+                            <input type="text" class="form-control" id="studentUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentEmail">電子郵件</label>
+                            <input type="email" class="form-control" id="studentEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentGrade">年級</label>
+                            <input type="number" class="form-control" id="studentGrade" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentMajor">專業</label>
+                            <input type="text" class="form-control" id="studentMajor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentClass">班級</label>
+                            <input type="text" class="form-control" id="studentClass" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentPassword">密碼</label>
+                            <input type="password" class="form-control" id="studentPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">新增學生</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 結構 -->
+    <div class="modal fade" id="attendanceModal" tabindex="-1" role="dialog" aria-labelledby="attendanceModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="attendanceModalLabel">已點名學生資訊</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-primary mb-3" id="refreshButton">立即刷新資料</button>
+                    <button class="btn btn-danger mb-3" id="clearButton">清空已點名資料</button> <!-- 清空按鈕 -->
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>學號</th>
+                                <th>狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('showAllStudents').addEventListener('click', function () {
+            fetch('http://localhost:8080/api/studentlist/all')
+                .then(response => response.json())
+                .then(data => {
+                    let tbody = document.getElementById('studentListBody');
+                    tbody.innerHTML = '';
+                    data.forEach(student => {
+                        let row = `<tr>
+                            <td>${student.studentid}</td>
+                            <td>${student.name}</td>
+                            <td>${student.username}</td>
+                            <td>${student.email}</td>
+                            <td>${student.grade}</td>
+                            <td>${student.major}</td>
+                            <td>${student.className}</td>
+                            <td><button class="btn btn-danger btn-sm">刪除</button></td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                });
+        });
+
+        // 新增學生
+        document.getElementById('addStudentForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const student = {
+                studentid: document.getElementById('studentId').value,
+                name: document.getElementById('studentName').value,
+                username: document.getElementById('studentUsername').value,
+                email: document.getElementById('studentEmail').value,
+                grade: parseInt(document.getElementById('studentGrade').value),
+                major: document.getElementById('studentMajor').value,
+                class_: document.getElementById('studentClass').value,
+                password: document.getElementById('studentPassword').value
+            };
+
+            fetch('http://localhost:8080/api/studentlist/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(student)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('學生新增成功');
+                        $('#addStudentModal').modal('hide');
+                        document.getElementById('addStudentForm').reset();
+                        // 可以選擇在這裡更新學生列表
+                    } else {
+                        alert('新增失敗');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        // 刪除學生
+        function deleteStudent(studentid) {
+            fetch(`http://localhost:8080/api/studentlist/id/${studentid}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('學生刪除成功');
+                        // 可以選擇在這裡更新學生列表
+                    } else {
+                        alert('刪除失敗');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // 顯示已點名學生資訊的 function
+        function refreshAttendanceList() {
+            fetch('http://localhost:8080/api/attendance/all') // 確保路徑正確
+                .then(response => response.json())
+                .then(data => {
+                    const listBody = document.getElementById('attendanceListBody');
+                    listBody.innerHTML = ''; // 清空舊的資料
+                    data.forEach(attendance => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${attendance.name}</td>
+                        <td>${attendance.studentId}</td>
+                        <td>${attendance.status}</td>
+                    `;
+                        listBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('獲取點名記錄失敗:', error));
+        }
+
+        // 自動刷新資料
+        setInterval(refreshAttendanceList, 30000);
+        refreshAttendanceList();
+
+        // 刷新按鈕的事件
+        document.getElementById('refreshButton').onclick = refreshAttendanceList;
+
+        // 清空按鈕的事件
+        document.getElementById('clearButton').onclick = function () {
+            if (confirm('確定要清空所有已點名的學生資料嗎？')) {
+                fetch('http://localhost:8080/api/attendance/clear', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('已清空所有點名記錄');
+                            const listBody = document.getElementById('attendanceListBody');
+                            listBody.innerHTML = ''; // 清空前端點名板顯示
+                        } else {
+                            alert('清空點名記錄失敗');
+                        }
+                    })
+                    .catch(error => console.error('清空點名資料請求錯誤:', error));
+            }
+        };
+    </script>
+</body>
+
+</html>

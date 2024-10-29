@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生請假系統</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+    <!-- 登入按鈕區域 -->
+    <div class="row justify-content-end mt-3">
+        <div class="col-md-6 text-right">
+            <!-- Button to Open the Modal or Log Out -->
+            <button type="button" id="authButton" class="btn btn-outline-secondary d-flex align-items-center ml-auto"
+                data-toggle="modal" data-target="#myModal">
+                <img src="/images/p52.png" class="img-fluid" style="width: 35px; height: 35px; margin-top: 2%;"
+                    alt="登入">
+                <span id="authButtonText">登入</span>
+            </button>
+        </div>
+    </div>
+    <div class="container mt-5">
+        <h1>學生請假系統</h1>
+
+        <!-- 新增假單表單 -->
+        <div id="addLeaveForm">
+            <h3>新增假單</h3>
+            <form id="leaveForm">
+                <div class="form-group">
+                    <label for="studentId">學號</label>
+                    <input type="text" class="form-control" id="studentId" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="studentName">姓名</label>
+                    <input type="text" class="form-control" id="studentName" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">開始時間</label>
+                    <input type="date" class="form-control" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">結束時間</label>
+                    <input type="date" class="form-control" id="endDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="leaveStatus">請假狀態</label>
+                    <select class="form-control" id="leaveStatus">
+                        <option value="事假審核中">事假審核中</option>
+                        <option value="病假審核中">病假審核中</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">新增假單</button>
+            </form>
+        </div>
+
+        <!-- 假單列表 -->
+        <h3 class="mt-5">已申請假單</h3>
+        <table class="table table-bordered" id="leaveTable">
+            <thead>
+                <tr>
+                    <th>假單編號</th>
+                    <th>學號</th>
+                    <th>姓名</th>
+                    <th>開始時間</th>
+                    <th>結束時間</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 假單資料會在這裡呈現 -->
+            </tbody>
+        </table>
+
+        <!-- 修改/刪除 Modal -->
+        <div class="modal fade" id="leaveModal" tabindex="-1" role="dialog" aria-labelledby="leaveModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="leaveModalLabel">修改假單</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="modalLeaveForm">
+                            <input type="hidden" id="modalLeaveId">
+                            <div class="form-group">
+                                <label for="modalStartDate">開始時間</label>
+                                <input type="date" class="form-control" id="modalStartDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modalEndDate">結束時間</label>
+                                <input type="date" class="form-control" id="modalEndDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="modalLeaveStatus">請假狀態</label>
+                                <select class="form-control" id="modalLeaveStatus">
+                                    <option value="事假審核中">事假審核中</option>
+                                    <option value="病假審核中">病假審核中</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">儲存變更</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+
+        // 檢查使用者是否已登入
+        const loggedIn = localStorage.getItem("student_username");
+
+        if (loggedIn) {
+            // 已登入，將按鈕文字改為登出
+            document.getElementById("authButtonText").textContent = "登出";
+            // 移除開啟登入Modal的屬性
+            document.getElementById("authButton").removeAttribute("data-toggle");
+            document.getElementById("authButton").removeAttribute("data-target");
+            // 為按鈕新增登出功能
+            document.getElementById("authButton").addEventListener("click", function () {
+                // 移除localStorage中的username
+                localStorage.removeItem("username");
+                // 提示使用者已成功登出
+                alert("已成功登出");
+                // 按鈕文字恢復為登入
+                document.getElementById("authButtonText").textContent = "登入";
+                // 重新加載頁面
+                window.location.reload();
+            });
+        }
+        $(document).ready(function () {
+            const studentid = localStorage.getItem("studentId");
+            const name = localStorage.getItem("studentName");
+
+            $("#studentId").val(studentid);
+            $("#studentName").val(name);
+
+            // 新增假單
+            $("#leaveForm").on("submit", function (e) {
+                e.preventDefault();
+
+                const leaveData = {
+                    studentid: studentid,
+                    name: name,
+                    startTime: $("#startDate").val(),
+                    endTime: $("#endDate").val(),
+                    status: $("#leaveStatus").val()
+                };
+
+                const startTime = new Date(leaveData.startTime);
+                const endTime = new Date(leaveData.endTime);
+                const leaveDays = (startTime - endTime) / (1000 * 60 * 60 * 24) + 1;
+
+                if (leaveDays > 5) {
+                    alert("每月不能請假超過5天！");
+                    return;
+                }
+
+                fetch("http://localhost:8080/api/leaves/addleave", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(leaveData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert("假單已新增！");
+                        updateLeaveTable();
+                    })
+                    .catch(error => console.error("Error:", error));
+            });
+
+            // 更新假單列表
+            function updateLeaveTable() {
+                fetch("http://localhost:8080/api/leaves/all")
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = $("#leaveTable tbody");
+                        tbody.empty();
+
+                        data.forEach(leave => {
+                            tbody.append(`
+                            <tr>
+                                <td>${leave.leaveid}</td>
+                                <td>${leave.studentid}</td>
+                                <td>${leave.name}</td>
+                                <td>${leave.startTime}</td>
+                                <td>${leave.endTime}</td>
+                                <td>${leave.status}</td>
+                                <td>
+                                    <button class="btn btn-primary edit-btn" data-id="${leave.leaveid}">修改</button>
+                                    <button class="btn btn-danger delete-btn" data-id="${leave.leaveid}">刪除</button>
+                                </td>
+                            </tr>
+                        `);
+                        });
+
+                        $(".edit-btn").click(function () {
+                            const leaveId = $(this).data("id");
+                            editLeave(leaveId);
+                        });
+
+                        $(".delete-btn").click(function () {
+                            const leaveId = $(this).data("id");
+                            deleteLeave(leaveId);
+                        });
+                    })
+                    .catch(error => console.error("Error:", error));
+            }
+
+            function editLeave(leaveId) {
+                // 獲取假單資料
+                fetch(`http://localhost:8080/api/leaves/${leaveId}`)
+                    .then(response => response.json())
+                    .then(leave => {
+                        // 將資料填入 Modal
+                        $("#modalLeaveId").val(leave.leaveid);
+                        $("#modalStartDate").val(leave.startTime.split("T")[0]); // 格式化日期
+                        $("#modalEndDate").val(leave.endTime.split("T")[0]);     // 格式化日期
+                        $("#modalLeaveStatus").val(leave.status);
+                        $("#leaveModal").modal("show"); // 顯示 Modal
+                    })
+                    .catch(error => console.error("Error:", error));
+
+                // 提交 Modal 表單
+                $("#modalLeaveForm").off("submit").on("submit", function (e) {
+                    e.preventDefault();
+
+                    const updatedLeave = {
+                        leaveid: $("#modalLeaveId").val(),
+                        startTime: $("#modalStartDate").val(),
+                        endTime: $("#modalEndDate").val(),
+                        status: $("#modalLeaveStatus").val()
+                    };
+
+                    // 發送更新請求
+                    fetch(`http://localhost:8080/api/leaves/update/${leaveid}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(updatedLeave)
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            } else {
+                                throw new Error("更新失敗");
+                            }
+                        })
+                        .then(() => {
+                            alert("假單已更新！");
+                            $("#leaveModal").modal("hide"); // 隱藏 Modal
+                            updateLeaveTable(); // 更新假單列表
+                        })
+                        .catch(error => console.error("Error:", error));
+                });
+            }
+
+            // 刪除假單
+            function deleteLeave(leaveId) {
+                if (!confirm("確定要刪除此假單嗎？")) return;
+
+                fetch("http://localhost:8080/api/leaves/delete/" + leaveid, {
+                    method: "DELETE"
+                })
+                    .then(() => {
+                        alert("假單已刪除！");
+                        updateLeaveTable();
+                    })
+                    .catch(error => console.error("Error:", error));
+            }
+
+            updateLeaveTable();
+        });
+    </script>
+</body>
+
+</html>

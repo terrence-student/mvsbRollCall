@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script async src="https://cse.google.com/cse.js?cx=54360293f1a554acf"></script> <!-- PSE API -->
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #chat {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            background-color: #fff;
+        }
+
+        .emoji {
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .sticker {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-sm bg-light">
+        <!-- Links -->
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">
+                        <img src="/images/p12.png" class="img-fluid float-right"
+                            style="width: 40px; height: 40px; margin-right: 45px;" alt="首頁">
+                    </a>
+                </li>
+                <li class="nav-item mt-2">
+                    <a class="nav-link" href="http://127.0.0.1:5500/1020loginst.html" style="color: brown;">學生專區</a>
+                </li>
+                <li class="nav-item mt-2">
+                    <a class="nav-link" href="http://127.0.0.1:5500/1020loginte.html" >教職員專區</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav navbar-right">
+                <li class="nav-item">
+                    <!-- Google Search Engine 的嵌入區域 -->
+                    <div class="gcse-searchbox-only"></div> <!-- 搜尋框 -->
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <!-- 登入按鈕區域 -->
+    <div class="row justify-content-end mt-3">
+        <div class="col-md-6 text-right">
+            <!-- Button to Open the Modal or Log Out -->
+            <button type="button" id="authButton" class="btn btn-outline-secondary d-flex align-items-center ml-auto"
+                data-toggle="modal" data-target="#myModal">
+                <img src="/images/p52.png" class="img-fluid" style="width: 35px; height: 35px; margin-top: 2%;"
+                    alt="登入">
+                <span id="authButtonText">登入</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <input id="username" class="form-control mb-2" placeholder="暱稱" />
+        <textarea id="message" class="form-control mb-2" placeholder="訊息" rows="3" maxlength="200"></textarea>
+        <button class="btn btn-success mb-2" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> 傳送訊息</button>
+        <button class="btn btn-danger mb-2" onclick="clearChat()"><i class="fas fa-trash"></i> 清空聊天</button>
+    </div>
+    <div id="chat" class="mt-3"></div>
+
+    <div class="emoji-picker d-flex mt-3">
+        <span class="emoji" onclick="addEmoji('😀')">😀</span>
+        <span class="emoji" onclick="addEmoji('😂')">😂</span>
+        <span class="emoji" onclick="addEmoji('😍')">😍</span>
+        <span class="emoji" onclick="addEmoji('😢')">😢</span>
+        <span class="emoji" onclick="addEmoji('😎')">😎</span>
+        <span class="emoji" onclick="addEmoji('😄')">😄</span>
+        <span class="emoji" onclick="addEmoji('😋')">😋</span>
+        <span class="emoji" onclick="addEmoji('😌')">😌</span>
+        <span class="emoji" onclick="addEmoji('😜')">😜</span>
+        <span class="emoji" onclick="addEmoji('😇')">😇</span>
+        <span class="emoji" onclick="addEmoji('😡')">😡</span>
+        <span class="emoji" onclick="addEmoji('🤔')">🤔</span>
+    </div>
+
+    <div class="stickers d-flex flex-wrap mt-3">
+        <img class="sticker" src="/images/717481889.png" alt="Sticker 1"
+            onclick="sendSticker('/images/717481889.png')" />
+        <img class="sticker" src="/images/717481890.png" alt="Sticker 2"
+            onclick="sendSticker('/images/717481890.png')" />
+        <img class="sticker" src="/images/717481891.png" alt="Sticker 3"
+            onclick="sendSticker('/images/717481891.png')" />
+        <img class="sticker" src="/images/717481892.png" alt="Sticker 4"
+            onclick="sendSticker('/images/717481892.png')" />
+        <img class="sticker" src="/images/717481900.png" alt="Sticker 5"
+            onclick="sendSticker('/images/717481900.png')" />
+        <img class="sticker" src="/images/717481904.png" alt="Sticker 6"
+            onclick="sendSticker('/images/717481904.png')" />
+        <img class="sticker" src="/images/717481893.png" alt="Sticker 7"
+            onclick="sendSticker('/images/717481893.png')" />
+        <img class="sticker" src="/images/717481894.png" alt="Sticker 8"
+            onclick="sendSticker('/images/717481894.png')" />
+    </div>
+
+    <script>
+        // 檢查使用者是否已登入
+        const loggedIn = localStorage.getItem("student_username");
+
+        if (loggedIn) {
+            // 已登入，將按鈕文字改為登出
+            document.getElementById("authButtonText").textContent = "登出";
+            // 移除開啟登入Modal的屬性
+            document.getElementById("authButton").removeAttribute("data-toggle");
+            document.getElementById("authButton").removeAttribute("data-target");
+            // 為按鈕新增登出功能
+            document.getElementById("authButton").addEventListener("click", function () {
+                // 移除localStorage中的username
+                localStorage.removeItem("username");
+                // 提示使用者已成功登出
+                alert("已成功登出");
+                // 按鈕文字恢復為登入
+                document.getElementById("authButtonText").textContent = "登入";
+                // 重新加載頁面
+                window.location.reload();
+            });
+        }
+
+        const socket = new SockJS('http://10.10.1.156:8080/chat');
+        const stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('连接成功: ' + frame);
+            stompClient.subscribe('/topic/messages', function (message) {
+                const msg = JSON.parse(message.body);
+                displayMessage(msg.from, msg.text);
+            });
+        });
+
+        function displayMessage(from, text) {
+            const timeStamp = new Date().toLocaleTimeString();
+            document.getElementById('chat').innerHTML +=
+                `<div class="message"><strong>${from}:</strong> ${text} <span style="font-size: 0.8em; color: gray;">(${timeStamp})</span></div>`;
+            scrollToBottom();
+        }
+
+        function sendMessage() {
+            const username = document.getElementById('username').value;
+            const text = document.getElementById('message').value;
+            if (username && text) {
+                stompClient.send("/app/send", {}, JSON.stringify({ from: username, text: text }));
+                document.getElementById('message').value = '';
+            }
+        }
+
+        function addEmoji(emoji) {
+            const messageInput = document.getElementById('message');
+            messageInput.value += emoji;
+            messageInput.focus();
+        }
+
+        function sendSticker(stickerUrl) {
+            const username = document.getElementById('username').value;
+            if (username) {
+                const imgHtml = `<img src="${stickerUrl}" style="width: 50px; height: 50px;">`;
+                stompClient.send("/app/send", {}, JSON.stringify({ from: username, text: imgHtml }));
+            }
+        }
+
+        function clearChat() {
+            document.getElementById('chat').innerHTML = '';
+        }
+
+        function scrollToBottom() {
+            const chatDiv = document.getElementById('chat');
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

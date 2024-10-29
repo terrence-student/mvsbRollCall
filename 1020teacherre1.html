@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <title>老師註冊系統</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        .result-box {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>老師註冊系統</h1>
+
+        <form onsubmit="registerTeacher(event)">
+            <div class="form-group">
+                <label for="name">姓名：</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="username">用戶名：</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密碼：</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="email">電子郵件：</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <button type="submit" class="btn btn-primary">註冊</button>
+        </form>
+
+        <h2 class="result-box">老師列表</h2>
+        <button class="btn btn-secondary" onclick="fetchTeachers()">獲取老師列表</button>
+        <ul class="list-group" id="teacherList"></ul>
+    </div>
+
+    <script>
+        async function registerTeacher(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const teacherData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('http://localhost:8080/api/teachers/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(teacherData)
+                });
+
+                if (response.ok) {
+                    alert('註冊成功！');
+                    fetchTeachers(); // 重新獲取老師列表
+                } else if (response.status === 409) {
+                    const errorMessage = await response.text();
+                    alert(errorMessage); // 顯示用戶名或電子郵件已存在的提示
+                } else {
+                    alert('註冊失敗！請稍後再試。');
+                }
+            } catch (error) {
+                console.error('錯誤:', error);
+                alert('註冊時出現錯誤！');
+            }
+        }
+
+
+        async function fetchTeachers() {
+            try {
+                const response = await fetch('http://localhost:8080/api/teachers/get');
+                if (!response.ok) {
+                    throw new Error('無法獲取老師列表');
+                }
+                const teachers = await response.json();
+                const list = document.getElementById('teacherList');
+                list.innerHTML = ''; // 清空列表
+
+                teachers.forEach(teacher => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    item.textContent = `${teacher.name} (${teacher.username})`;
+                    item.innerHTML += ` <button class="btn btn-warning btn-sm" onclick="updateTeacher(${teacher.teacherId})">更新</button>`;
+                    item.innerHTML += ` <button class="btn btn-danger btn-sm" onclick="deleteTeacher(${teacher.teacherId})">刪除</button>`;
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('錯誤:', error);
+            }
+        }
+
+        async function updateTeacher(teacherId) {
+            const newName = prompt('請輸入新的姓名：');
+            const newUsername = prompt('請輸入新的用戶名：');
+
+            if (newName && newUsername) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/teachers/${teacherId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: newName, username: newUsername })
+                    });
+
+                    if (response.ok) {
+                        alert('更新成功！');
+                        fetchTeachers(); // 重新獲取老師列表
+                    } else {
+                        alert('更新失敗！');
+                    }
+                } catch (error) {
+                    console.error('錯誤:', error);
+                }
+            }
+        }
+
+        async function deleteTeacher(teacherId) {
+            if (confirm('確定要刪除這位老師嗎？')) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/teachers/${teacherId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        alert('刪除成功！');
+                        fetchTeachers(); // 重新獲取老師列表
+                    } else {
+                        alert('刪除失敗！');
+                    }
+                } catch (error) {
+                    console.error('錯誤:', error);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

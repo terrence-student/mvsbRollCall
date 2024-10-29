@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教職員更改密碼</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa; /* 淺灰背景 */
+        }
+        .container {
+            max-width: 500px; /* 限制容器最大寬度 */
+            margin-top: 100px; /* 上邊距 */
+            padding: 20px; /* 內邊距 */
+            background-color: #ffffff; /* 白色背景 */
+            border-radius: 8px; /* 圓角 */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* 陰影效果 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center">教職員更改密碼</h2>
+        <form id="changePasswordForm">
+            <input type="hidden" id="username" value=""> <!-- 隱藏欄位用來接收用戶名 -->
+            <div class="form-group">
+                <label for="newPassword">新密碼</label>
+                <input type="password" id="newPassword" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">再輸入一次新密碼</label>
+                <input type="password" id="confirmPassword" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">確認</button>
+        </form>
+    </div>
+
+    <script>
+        // 假設你是從上一頁獲取用戶名
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username'); // 獲取用戶名
+        document.getElementById('username').value = username; // 將用戶名放入隱藏欄位
+
+        // 提交表單
+        document.getElementById("changePasswordForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const newPassword = document.getElementById("newPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            // 檢查新密碼和確認密碼是否一致
+            if (newPassword !== confirmPassword) {
+                alert("新密碼與確認密碼不一致！");
+                return;
+            }
+
+            // 發送更新密碼的請求
+            fetch('http://localhost:8080/teacher/forgot/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username, newPassword: newPassword }) // 直接發送新密碼
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("密碼已成功更改");
+                    window.location.href = '1020loginte.html'; // 可以跳轉到首頁
+                } else {
+                    throw new Error('Failed to update password');
+                }
+            })
+            .catch(error => {
+                alert(error.message);
+            });
+        });
+    </script>
+</body>
+</html>

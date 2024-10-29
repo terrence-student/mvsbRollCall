@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請假管理系統</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <!-- 登入按鈕區域 -->
+    <div class="row justify-content-end mt-3">
+        <div class="col-md-6 text-right">
+            <!-- Button to Open the Modal or Log Out -->
+            <button type="button" id="authButton" class="btn btn-outline-secondary d-flex align-items-center ml-auto"
+                data-toggle="modal" data-target="#myModal">
+                <img src="/images/p52.png" class="img-fluid" style="width: 35px; height: 35px; margin-top: 2%;"
+                    alt="登入">
+                <span id="authButtonText">登入</span>
+            </button>
+        </div>
+    </div>
+    <h2>學生請假系統</h2>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="http://127.0.0.1:5500/homepage.html">首頁</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="leaveManagementDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        請假管理
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="leaveManagementDropdown">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addLeaveModal">新增假單</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#updateLeaveModal">修改假單</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteLeaveModal">刪除假單</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="queryDropdown" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        查詢
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="queryDropdown">
+                        <a class="dropdown-item" href="#" data-toggle="modal"
+                            data-target="#queryByStatusModal">請假審核進度查詢</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#countLeavesModal">假單統計</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal"
+                            data-target="#timeRangeModal">假單時間查詢</a>
+                            <a class="dropdown-item" href="#" data-toggle="modal"
+                            onclick="location.reload();">重新載入頁面</a>
+                    </div>
+                    
+                </li>
+                
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 新增假單 Modal -->
+    <div class="modal fade" id="addLeaveModal" tabindex="-1" role="dialog" aria-labelledby="addLeaveModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addLeaveModalLabel">新增假單</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <form id="addLeaveForm">
+                        <div class="form-group">
+                            <label for="name">姓名</label>
+                            <input type="text" class="form-control" id="name" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="studentId">學號</label>
+                            <input type="text" class="form-control" id="studentId" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">請選擇假別</label>
+                            <select class="form-control" id="status" required>
+                                <option value="事假">事假</option>
+                                <option value="病假">病假</option>
+                                <option value="公假">公假</option>
+                                <option value="生理假">生理假</option>
+                                <option value="身心調適假">身心調適假</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="startTime">請假開始日期</label>
+                            <input type="datetime-local" class="form-control" id="startTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">請假結束日期</label>
+                            <input type="datetime-local" class="form-control" id="endTime" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">提交</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 更新假單 Modal -->
+    <div class="modal fade" id="updateLeaveModal" tabindex="-1" role="dialog" aria-labelledby="updateLeaveModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateLeaveModalLabel">更新假單</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                    <form id="updateLeaveForm">
+                        <input type="hidden" id="leaveId"> <!-- 隱藏的請假單 ID -->
+
+                        <div class="form-group">
+                            <label for="updateLeaveId">請假編號</label>
+                            <input type="text" class="form-control" id="updateleaveId" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="updateName">姓名</label>
+                            <input type="text" class="form-control" id="updateName" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateStudentId">學號</label>
+                            <input type="text" class="form-control" id="updateStudentId" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateStatus">請選擇假別</label>
+                            <select class="form-control" id="updateStatus" required>
+                                <option value="事假">事假</option>
+                                <option value="病假">病假</option>
+                                <option value="公假">公假</option>
+                                <option value="生理假">生理假</option>
+                                <option value="身心調適假">身心調適假</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateStartTime">請假開始日期</label>
+                            <input type="datetime-local" class="form-control" id="updateStartTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateEndTime">請假結束日期</label>
+                            <input type="datetime-local" class="form-control" id="updateEndTime" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">更新</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- 審核狀態查詢 Modal -->
+    <div class="modal fade" id="queryByStatusModal" tabindex="-1" role="dialog"
+        aria-labelledby="queryByStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="queryByStatusModalLabel">審核狀態查詢</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="queryByStatusForm">
+                        <div class="form-group">
+                            <label for="queryStatus">審核狀態</label>
+                            <select class="form-control" id="queryStatus" required>
+                                <option value="未審核">未審核</option>
+                                <option value="審核通過">審核通過</option>
+                                <option value="未審核通過">未審核通過</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">查詢</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <!-- 學生假單統計 Modal -->
+     <div class="modal fade" id="countLeavesModal" tabindex="-1" role="dialog" aria-labelledby="countLeavesModalLabel"
+     aria-hidden="true">
+     <div class="modal-dialog" role="document">
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h5 class="modal-title" id="countLeavesModalLabel">學生假單統計</h5>
+                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                 </button>
+             </div>
+             <div class="modal-body">
+                 <form id="countLeavesForm">
+                     <div class="form-group">
+                         <label for="countStudentId">學號</label>
+                         <input type="text" class="form-control" id="countStudentId" readonly>
+                     </div>
+                     <button type="submit" class="btn btn-primary">統計</button>
+                 </form>
+             </div>
+         </div>
+     </div>
+ </div>
+
+     <!-- 時間範圍查詢 Modal -->
+<div class="modal fade" id="timeRangeModal" tabindex="-1" role="dialog" aria-labelledby="timeRangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeRangeModalLabel">時間範圍查詢</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="timeRangeForm">
+                    <div class="form-group">
+                        <label for="forquerystartTime">開始時間</label>
+                        <input type="datetime-local" class="form-control" id="forquerystartTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="forqueryendTime">結束時間</label>
+                        <input type="datetime-local" class="form-control" id="forqueryendTime" required>
+                    </div>
+                </form>
+                <button type="button" class="btn btn-primary" onclick="queryLeavekByTimeRange()">查詢</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- 刪除假單 Modal -->
+    <div class="modal fade" id="deleteLeaveModal" tabindex="-1" role="dialog" aria-labelledby="deleteLeaveModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteLeaveModalLabel">刪除假單</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="deleteLeaveForm">
+                        <div class="form-group">
+                            <label for="deleteLeaveId">假單 ID</label>
+                            <input type="text" class="form-control" id="deleteLeaveId" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger">刪除</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 請假記錄表格 -->
+    <div class="container mt-5">
+        <div class="table-responsive">
+            <table id="leavesTable" class="table table-striped table-bordered"
+                style="white-space: nowrap; min-width: 800px;">
+                <thead>
+                    <tr>
+                        <th>請假編號</th>
+                        <th>姓名</th>
+                        <th>學號</th>
+                        <th>請假狀態</th>
+                        <th>開始時間</th>
+                        <th>結束時間</th>
+                        <th>審核結果</th>
+                    </tr>
+                </thead>
+                <tbody id="leavesBody">
+                    <!-- 假單資料將插入到這裡 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+
+
+
+        // 檢查使用者是否已登入
+        const loggedIn = localStorage.getItem("student_username");
+
+        if (loggedIn) {
+            // 已登入，將按鈕文字改為登出
+            document.getElementById("authButtonText").textContent = "登出";
+            // 移除開啟登入Modal的屬性
+            document.getElementById("authButton").removeAttribute("data-toggle");
+            document.getElementById("authButton").removeAttribute("data-target");
+            // 為按鈕新增登出功能
+            document.getElementById("authButton").addEventListener("click", function () {
+                // 移除localStorage中的username
+                localStorage.removeItem("username");
+                // 提示使用者已成功登出
+                alert("已成功登出");
+                // 按鈕文字恢復為登入
+                document.getElementById("authButtonText").textContent = "登入";
+                // 重新加載頁面
+                window.location.reload();
+            });
+        }
+        document.addEventListener('DOMContentLoaded', async function () {
+            const username = localStorage.getItem("student_username"); // 從 localStorage 取得用戶名
+            if (username) {
+                try {
+                    const studentResponse = await fetch(`http://localhost:8080/getSingleStudentData?username=${username}`);
+
+                    if (studentResponse.ok) {
+                        const studentData = await studentResponse.json();
+
+
+                        // 假設 modal 的 input 欄位有 id 分別是 'name' 和 'studentId'
+                        document.getElementById("name").value = studentData.name;
+                        document.getElementById("studentId").value = studentData.studentid;
+                        document.getElementById("updateName").value = studentData.name;
+                        document.getElementById("updateStudentId").value = studentData.studentid;
+                        document.getElementById('countStudentId').value=studentData.studentid;
+
+                    } else {
+                        alert("無法取得學生資料，請稍後再試。");
+                    }
+                } catch (error) {
+                    console.error("錯誤:", error);
+                    alert("請求失敗，請檢查網路連線。");
+                }
+            }
+
+            // 取得所有請假記錄並填充表格
+            try {
+                const studentId=document.getElementById("studentId").value;
+                const leavesResponse = await fetch(`http://localhost:8080/api/leaves/student/${studentId}`); // 確保 API 路徑正確
+
+                if (leavesResponse.ok) {
+                    const leavesData = await leavesResponse.json();
+                    const leavesTableBody = document.getElementById("leavesTable").querySelector("tbody");
+
+                    // 清空表格內容
+                    leavesTableBody.innerHTML = "";
+
+                    // 遍歷每一個請假記錄，並將其添加到表格中
+                    leavesData.forEach(leave => {
+                        const row = document.createElement("tr");
+                        const reviewStatus = leave.checkstatus ? leave.checkstatus : '未審核'; // 獲取審核狀態，若為 null 則設為空字符串
+
+                        let reviewButtonText, reviewButtonClass;
+                         // 設定審核狀態顏色
+                         const statusColor = reviewStatus === "審核通過" ? "green" :
+                                reviewStatus === "未審核通過" ? "red" :
+                                    "black"; // 根據審核狀態設置顏色
+
+
+                            row.innerHTML = `
+                    <td>${leave.leaveid}</td>
+                    <td>${leave.name}</td>
+                    <td>${leave.studentid}</td>
+                    <td>${leave.status}</td>
+                    <td>${leave.startTime.replace("T", " ")}</td> <!-- 格式化時間顯示 -->
+                    <td>${leave.endTime.replace("T", " ")}</td> <!-- 格式化時間顯示 -->
+                    <td class="review-status" style="color: ${statusColor};">${reviewStatus}</td>
+                   
+                `;
+                            leavesTableBody.appendChild(row);
+                        });
+                } else {
+                    alert("無法取得請假記錄，請稍後再試。");
+                }
+            } catch (error) {
+                console.error("錯誤:", error);
+                alert("請求失敗，請檢查網路連線。");
+            }
+        });
+
+
+
+
+        // 新增假單提交表單
+        $("#addLeaveForm").on("submit", function (event) {
+            event.preventDefault();
+            // 從表單獲取輸入的值
+            const name = $("#name").val();
+            const studentId = $("#studentId").val();
+            const status = $("#status").val();
+            // 格式化 startTime 和 endTime 為 'yyyy-MM-ddTHH:mm:ss'
+            const startTime = $("#startTime").val();
+            const endTime = $("#endTime").val();
+            // 檢查是否有未填寫的欄位
+            if (!name || !studentId || !status || !startTime || !endTime) {
+                alert("請完整填寫所有欄位");
+                return;
+            }
+             // 檢查 startTime 是否早於 endTime
+             if (new Date(startTime) >= new Date(endTime)) {
+                alert("開始時間必須早於結束時間");
+                return;
+            }
+            // 發送 POST 請求新增假單
+            fetch("http://localhost:8080/api/leaves/addleave", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                    studentid: studentId,
+                    status: status,
+                    startTime: startTime,
+                    endTime: endTime,
+                }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("新增失敗，請檢查輸入內容");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+
+                    alert("假單新增成功！"); // 新增成功提示
+
+                    $("#addLeaveModal").modal("hide"); // 關閉模態框
+                    $("#addLeaveForm")[0].reset(); // 重置表單
+                    window.location.reload(); // 刷新頁面
+                })
+                .catch(error => console.error("新增失敗:", error));
+        });
+
+
+
+
+
+
+
+        // 更新假單提交表單
+        $("#updateLeaveForm").on("submit", function (event) {
+            event.preventDefault();
+
+            const leaveId = $("#updateleaveId").val();
+            const name = $("#updateName").val();
+            const studentId = $("#updateStudentId").val();
+            const status = $("#updateStatus").val();
+            const startTime = $("#updateStartTime").val(); // 取得原始輸入值
+            const endTime = $("#updateEndTime").val(); // 取得原始輸入值
+
+            // 檢查是否有未填寫的欄位
+            if (!leaveId || !name || !studentId || !status || !startTime || !endTime) {
+                alert("請完整填寫所有欄位");
+                return;
+            }
+
+            // 格式化 startTime 和 endTime 為 'yyyy-MM-ddTHH:mm:ss'
+            const formattedStartTime = startTime.replace(" ", "T");
+            const formattedEndTime = endTime.replace(" ", "T");
+
+            // 發送 PUT 請求更新假單
+            fetch(`http://localhost:8080/api/leaves/update/${leaveId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: leaveId,
+                    name: name,
+                    studentid: studentId,
+                    status: status,
+                    startTime: formattedStartTime, // 使用格式化的時間
+                    endTime: formattedEndTime, // 使用格式化的時間
+                }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("更新失敗，請檢查輸入內容");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert("假單更新成功！"); // 更新成功提示
+                    $("#updateLeaveModal").modal("hide"); // 關閉模態框
+                    // 重新加載頁面或更新 UI
+                    window.location.reload(); // 刷新頁面
+                })
+                .catch(error => console.error("更新失敗:", error));
+        });
+
+
+
+        // 刪除假單
+        $("#deleteLeaveForm").on("submit", function (event) {
+            event.preventDefault();
+            const leaveid = $("#deleteLeaveId").val();
+            
+
+            fetch(`http://localhost:8080/api/leaves/delete/${leaveid}`, {
+                method: "DELETE",
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("刪除成功"); // 顯示成功提示
+                        $("#deleteLeaveModal").modal("hide"); // 關閉模態框
+                        window.location.reload(); // 刷新頁面
+                    } else {
+                        console.log("刪除失敗");
+                        alert("刪除失敗，請稍後再試。"); // 顯示失敗提示
+                    }
+                })
+                .catch(error => {
+                    console.error("刪除失敗:", error);
+                    alert("請求失敗，請檢查網路連線。"); // 顯示網路錯誤提示
+                });
+        });
+         // 根據狀態查詢假單
+         $("#queryByStatusForm").on("submit", function (event) {
+            event.preventDefault();
+            let checkstatus = $("#queryStatus").val();
+
+            // 判斷 checkstatus 的值
+            if (checkstatus !== "未審核通過" && checkstatus !== "審核通過") {
+                checkstatus = null; // 若不為未審核通過或審核通過，則設為未審核
+            }
+
+            fetch(`http://localhost:8080/api/teacherleaves/checkstatus/${checkstatus}`)
+                .then(response => response.json())
+                .then(data => {
+
+
+                    const leavesBody = document.getElementById("leavesBody");
+                    leavesBody.innerHTML = ""; // 清空表格內容
+
+                    data.forEach(leave => {
+                        const row = document.createElement("tr");
+
+                        // 根據不同的審核狀態顯示相應的文字
+                        let reviewStatus;
+                        if (leave.checkstatus === "未審核") {
+                            reviewStatus = "未審核";
+                        } else if (leave.checkstatus === "未審核通過") {
+                            reviewStatus = "未審核通過";
+                        } else if (leave.checkstatus === "審核通過") {
+                            reviewStatus = "審核通過";
+                        } else {
+                            reviewStatus = "未審核"; // 預設文字，防止空值
+                        }
+
+                        // 根據審核狀態設置按鈕文本、樣式和禁用狀態
+                        let reviewButtonText, reviewButtonClass, isDisabled;
+                        if (reviewStatus === "審核通過") {
+                            reviewButtonText = "已審核";
+                            reviewButtonClass = "btn-secondary"; // 灰色按鈕
+                            isDisabled = true; // 禁用按鈕
+                        } else if (reviewStatus === "未審核通過") {
+                            reviewButtonText = "已審核";
+                            reviewButtonClass = "btn-secondary"; // 灰色按鈕
+                            isDisabled = false; // 啟用按鈕
+                        } else {
+                            reviewButtonText = "審核"; // 默認文本
+                            reviewButtonClass = "btn-primary"; // 默認樣式
+                            isDisabled = false; // 默認為啟用
+                        }
+
+                        // 設定審核狀態顏色
+                        const statusColor = reviewStatus === "審核通過" ? "green" :
+                            reviewStatus === "未審核通過" ? "red" : "black"; // 根據審核狀態設置顏色
+
+                        row.innerHTML = `
+                    <td>${leave.leaveid}</td>
+                    <td>${leave.name}</td>
+                    <td>${leave.studentid}</td>
+                    <td>${leave.status}</td>
+                    <td>${leave.startTime.replace("T", " ")}</td> <!-- 格式化時間顯示 -->
+                    <td>${leave.endTime.replace("T", " ")}</td> <!-- 格式化時間顯示 -->
+                    <td class="review-status" style="color: ${statusColor};">${reviewStatus}</td>
+                    <td>
+                        
+                    </td>
+                `;
+                        leavesBody.appendChild(row);
+                    });
+
+                    // 添加事件監聽器給每個審核按鈕
+                    
+                
+
+                    // 關閉模組（根據您的模組 ID 或方法來關閉模組）
+                    $("#queryByStatusModal").modal('hide'); // 使用 jQuery 的模組隱藏方法
+
+                })
+                .catch(error => console.error("查詢失敗:", error));
+        });
+       
+       
+       // 假單統計
+       $("#countLeavesForm").on("submit", function (event) {
+            event.preventDefault();
+            const studentid = $("#countStudentId").val();
+
+            fetch(`http://localhost:8080/api/teacherleaves/count/${studentid}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`假單數量為 ${data}`);
+                    $("#countLeavesModal").modal("hide"); // 關閉模態框
+                })
+                .catch(error => console.error("統計失敗:", error));
+        });
+        function queryLeavekByTimeRange() {
+   
+   const startTimeElement = document.getElementById('forquerystartTime');
+   const endTimeElement = document.getElementById('forqueryendTime');
+   
+   // 直接獲取輸入值
+   const startTimeValue = startTimeElement.value;
+   const endTimeValue = endTimeElement.value;
+
+   
+   // 檢查開始時間和結束時間是否為空
+   if (!startTimeValue || !endTimeValue) {
+       if (!startTimeValue) {
+           startTimeElement.setCustomValidity('開始時間不能為空！');
+       } else {
+           startTimeElement.setCustomValidity('');
+       }
+
+       if (!endTimeValue) {
+           endTimeElement.setCustomValidity('結束時間不能為空！');
+       } else {
+           endTimeElement.setCustomValidity('');
+       }
+
+       startTimeElement.reportValidity(); // 顯示錯誤提示
+       endTimeElement.reportValidity(); // 顯示錯誤提示
+       return; // 退出函數，避免發送請求
+   } else {
+       // 如果有效，清除錯誤提示
+       startTimeElement.setCustomValidity('');
+       endTimeElement.setCustomValidity('');
+   }
+
+   // 檢查開始時間是否大於結束時間
+   if (new Date(startTimeValue) >= new Date(endTimeValue)) {
+       startTimeElement.setCustomValidity('開始時間必須早於結束時間！');
+       endTimeElement.setCustomValidity('結束時間必須晚於開始時間！');
+       startTimeElement.reportValidity(); // 顯示錯誤提示
+       return; // 退出函數，避免發送請求
+   } else {
+       // 如果有效，清除錯誤提示
+       startTimeElement.setCustomValidity('');
+       endTimeElement.setCustomValidity('');
+   }
+
+   // 直接使用 input 值進行請求
+   fetch(`http://localhost:8080/api/teacherleaves/time-range?starttime=${startTimeValue}&endtime=${endTimeValue}`, {
+       method: 'GET'
+   })
+   .then(response => {
+       if (!response.ok) {
+           throw new Error(response.statusText);
+       }
+       return response.json();
+   })
+   .then(data => {
+       const leavesBody = document.getElementById('leavesBody');
+       leavesBody.innerHTML = ''; // 清空之前的查詢結果
+
+       data.forEach(leave => {
+           const formattedDate = formatDateTime(leave.startTime); // 確保格式化日期
+           const row = document.createElement("tr");
+           const reviewStatus = leave.checkstatus ? leave.checkstatus : '未審核'; // 獲取審核狀態，若為 null 則設為 "未審核"
+
+           // 根據審核狀態設置按鈕文本、樣式和禁用狀態
+           let reviewButtonText, reviewButtonClass, isDisabled;
+
+           if (reviewStatus === "審核通過") {
+               reviewButtonText = "已審核";
+               reviewButtonClass = "btn-secondary"; // 灰色按鈕
+               isDisabled = true; // 禁用按鈕
+           } else if (reviewStatus === "未審核通過") {
+               reviewButtonText = "已審核";
+               reviewButtonClass = "btn-secondary"; // 灰色按鈕
+               isDisabled = false; // 啟用按鈕
+           } else {
+               reviewButtonText = "審核"; // 默認文本
+               reviewButtonClass = "btn-primary"; // 默認樣式
+               isDisabled = false; // 默認為啟用
+           }
+
+           // 設定審核狀態顏色
+           const statusColor = reviewStatus === "審核通過" ? "green" :
+               reviewStatus === "未審核通過" ? "red" : "black"; // 根據審核狀態設置顏色
+
+           row.innerHTML = `
+               <td>${leave.leaveid}</td>
+               <td>${leave.name}</td>
+               <td>${leave.studentid}</td>
+               <td>${leave.status}</td>
+               <td>${formattedDate}</td> <!-- 格式化時間顯示 -->
+               <td>${leave.endTime.replace("T", " ")}</td> <!-- 格式化時間顯示 -->
+               <td class="review-status" style="color: ${statusColor};">${reviewStatus}</td>
+               
+           `;
+           leavesBody.appendChild(row);
+       });
+
+       
+
+       // 若查無結果
+       if (data.length === 0) {
+           alert("查無相關請假記錄");
+       } else {
+           // 成功後執行的操作
+           $("#timeRangeModal").modal("hide"); // 關閉模態框
+           $("#timeRangeForm")[0].reset(); // 重置表單
+       }
+   })
+   .catch(error => {
+       console.error("錯誤:", error);
+       alert("請求失敗，請檢查網路連線。");
+   });
+}
+
+// 格式化日期時間
+function formatDateTime(dateTime) {
+   return dateTime.replace("T", " "); // 根據需要修改格式化邏輯
+}
+
+
+
+    </script>
+</body>
+
+</html>

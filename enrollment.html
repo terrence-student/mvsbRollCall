@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選課系統</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .pdf-container {
+            width: 100%;
+            /* 使用100%的寬度 */
+            max-width: 210mm;
+            /* 設定一個最大寬度 */
+            height: auto;
+            /* 自適應高度 */
+            margin: 0 auto;
+        }
+
+        .selected {
+            background-color: #90ee90;
+        }
+
+        .conflict {
+            background-color: #ffcccb;
+            /* 衝突標示 */
+        }
+
+        @media print {
+            .pdf-container {
+                width: 100%;
+                /* 列印時使用全寬 */
+                max-width: 210mm;
+            }
+
+            table {
+                page-break-inside: avoid;
+                width: 100%;
+                /* 表格寬度設定為100% */
+                table-layout: fixed;
+                /* 固定寬度 */
+            }
+
+            th,
+            td {
+                width: 20%;
+                /* 每列占總寬度的20% */
+                word-wrap: break-word;
+                /* 自動換行 */
+                overflow: hidden;
+                /* 隱藏溢出內容 */
+                text-align: center;
+                /* 文字置中 */
+            }
+
+            h1,
+            h2 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-sm bg-light">
+            <!-- Links -->
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">
+                            <img src="/images/p12.png" class="img-fluid float-right"
+                                style="width: 40px; height: 40px; margin-right: 45px;" alt="首頁">
+                        </a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="http://127.0.0.1:5500/1020loginst.html" style="color: brown;">學生專區</a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="http://127.0.0.1:5500/1020loginte.html"
+                            >教職員專區</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav navbar-right">
+                    <li class="nav-item">
+                        <!-- Google Search Engine 的嵌入區域 -->
+                        <div class="gcse-searchbox-only"></div> <!-- 搜尋框 -->
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 登入按鈕區域 -->
+        <div class="row justify-content-end mt-3">
+            <div class="col-md-6 text-right">
+                <!-- Button to Open the Modal or Log Out -->
+                <button type="button" id="authButton"
+                    class="btn btn-outline-secondary d-flex align-items-center ml-auto" data-toggle="modal"
+                    data-target="#myModal">
+                    <img src="/images/p52.png" class="img-fluid" style="width: 35px; height: 35px; margin-top: 2%;"
+                        alt="登入">
+                    <span id="authButtonText">登入</span>
+                </button>
+            </div>
+        </div>
+        <h1 class="text-center">選課系統</h1>
+        <h2>選擇課程</h2>
+        <div class="form-group">
+            <select id="courseSelect" class="form-control"></select>
+            <button id="addCourseBtn" class="btn btn-primary mt-2">加入課程</button>
+        </div>
+        <h2>已選課程</h2>
+        <div id="selectedCourses" class="mb-3"></div>
+        <h2>課程時間表</h2>
+        <div class="pdf-container">
+            <table id="scheduleTable" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>時間/星期</th>
+                        <th>星期一</th>
+                        <th>星期二</th>
+                        <th>星期三</th>
+                        <th>星期四</th>
+                        <th>星期五</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <button id="savePdfBtn" class="btn btn-success">儲存課表為PDF並顯示總學分</button>
+    </div>
+
+    <script>
+
+
+        // 檢查使用者是否已登入
+        const loggedIn = localStorage.getItem("student_username");
+
+        if (loggedIn) {
+            // 已登入，將按鈕文字改為登出
+            document.getElementById("authButtonText").textContent = "登出";
+            // 移除開啟登入Modal的屬性
+            document.getElementById("authButton").removeAttribute("data-toggle");
+            document.getElementById("authButton").removeAttribute("data-target");
+            // 為按鈕新增登出功能
+            document.getElementById("authButton").addEventListener("click", function () {
+                // 移除localStorage中的username
+                localStorage.removeItem("username");
+                // 提示使用者已成功登出
+                alert("已成功登出");
+                // 按鈕文字恢復為登入
+                document.getElementById("authButtonText").textContent = "登入";
+                // 重新加載頁面
+                window.location.reload();
+            });
+        }
+        const courses = [
+            { id: 1, name: "數學", time: { day: 1, start: 8, end: 11 }, credits: 3 },
+            { id: 2, name: "物理", time: { day: 1, start: 9, end: 12 }, credits: 3 },
+            { id: 3, name: "化學", time: { day: 2, start: 13, end: 15 }, credits: 2 },
+            { id: 4, name: "生物", time: { day: 2, start: 14, end: 17 }, credits: 3 },
+            { id: 5, name: "歷史", time: { day: 3, start: 8, end: 10 }, credits: 2 },
+            { id: 6, name: "地理", time: { day: 3, start: 10, end: 12 }, credits: 2 },
+            { id: 7, name: "音樂", time: { day: 4, start: 13, end: 15 }, credits: 2 },
+            { id: 8, name: "美術", time: { day: 4, start: 15, end: 17 }, credits: 2 },
+            { id: 9, name: "體育", time: { day: 5, start: 8, end: 10 }, credits: 2 },
+            { id: 10, name: "心理學", time: { day: 5, start: 10, end: 12 }, credits: 2 },
+            { id: 11, name: "經濟學", time: { day: 1, start: 14, end: 16 }, credits: 2 },
+            { id: 12, name: "管理學", time: { day: 2, start: 8, end: 10 }, credits: 2 },
+            { id: 13, name: "哲學", time: { day: 3, start: 13, end: 14 }, credits: 1 },
+            { id: 14, name: "程式設計", time: { day: 4, start: 10, end: 12 }, credits: 2 },
+            { id: 15, name: "數據科學", time: { day: 5, start: 13, end: 15 }, credits: 2 },
+            { id: 16, name: "網頁設計", time: { day: 1, start: 16, end: 18 }, credits: 2 },
+            { id: 17, name: "機器學習", time: { day: 2, start: 10, end: 12 }, credits: 2 },
+            { id: 18, name: "數學建模", time: { day: 3, start: 14, end: 16 }, credits: 2 },
+            { id: 19, name: "人工智慧", time: { day: 4, start: 16, end: 18 }, credits: 2 },
+            { id: 20, name: "運籌學", time: { day: 5, start: 14, end: 16 }, credits: 2 },
+        ];
+
+        const courseSelect = document.getElementById('courseSelect');
+        const addCourseBtn = document.getElementById('addCourseBtn');
+        const selectedCoursesDiv = document.getElementById('selectedCourses');
+        const savePdfBtn = document.getElementById('savePdfBtn');
+        const scheduleTable = document.getElementById('scheduleTable');
+        let totalCredits = 0;
+        let selectedCourses = [];
+
+        function populateCourses() {
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = `${course.name} - 星期${course.time.day} ${course.time.start}:00 - ${course.time.end}:00 (${course.credits} 學分)`;
+                courseSelect.appendChild(option);
+            });
+        }
+
+        function createScheduleTable() {
+            const tbody = scheduleTable.querySelector('tbody');
+            tbody.innerHTML = ''; // 清空表格內容
+            for (let hour = 8; hour < 18; hour++) {
+                const row = document.createElement('tr');
+                const timeCell = document.createElement('td');
+                timeCell.textContent = `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`;
+                row.appendChild(timeCell);
+                for (let day = 1; day <= 5; day++) {
+                    const cell = document.createElement('td');
+                    cell.dataset.time = `${hour.toString().padStart(2, '0')}-${(hour + 1).toString().padStart(2, '0')}-${day}`;
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            }
+        }
+
+        function getTimeSlots(course) {
+            const slots = [];
+            for (let hour = course.time.start; hour < course.time.end; hour++) {
+                let startHour = hour.toString().padStart(2, '0');
+                let endHour = (hour + 1).toString().padStart(2, '0');
+                slots.push(`${startHour}-${endHour}-${course.time.day}`);
+            }
+            return slots;
+        }
+
+        function isConflict(slots) {
+            return slots.some(slot => {
+                const cell = document.querySelector(`td[data-time="${slot}"]`);
+                return cell && (cell.classList.contains('selected') || cell.classList.contains('conflict'));
+            });
+        }
+
+        function removeCourse(course) {
+            const timeSlots = getTimeSlots(course);
+            timeSlots.forEach(slot => {
+                const cell = document.querySelector(`td[data-time="${slot}"]`);
+                if (cell) {
+                    cell.textContent = ''; // 清除課程名稱
+                    cell.classList.remove('selected', 'conflict');
+                }
+            });
+            totalCredits -= course.credits;
+            selectedCourses = selectedCourses.filter(c => c.id !== course.id);
+            renderSelectedCourses();
+        }
+
+        function addCourse() {
+            const selectedCourseId = parseInt(courseSelect.value);
+            const course = courses.find(c => c.id === selectedCourseId);
+            const timeSlots = getTimeSlots(course);
+            if (isConflict(timeSlots)) {
+                alert('選擇的課程與已選課程衝堂！');
+                return;
+            }
+            timeSlots.forEach(slot => {
+                const cell = document.querySelector(`td[data-time="${slot}"]`);
+                if (cell) {
+                    cell.textContent = course.name;
+                    cell.classList.add('selected');
+                }
+            });
+            selectedCourses.push(course);
+            totalCredits += course.credits;
+            renderSelectedCourses();
+        }
+
+        function renderSelectedCourses() {
+            selectedCoursesDiv.innerHTML = ''; // 清空已選課程列表
+            selectedCourses.forEach(course => {
+                const courseInfo = document.createElement('div');
+                courseInfo.textContent = `${course.name} - 星期${course.time.day} ${course.time.start}:00 - ${course.time.end}:00 (${course.credits} 學分)`;
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '刪除';
+                removeBtn.className = 'btn btn-danger btn-sm ml-2';
+                removeBtn.onclick = () => removeCourse(course);
+                courseInfo.appendChild(removeBtn);
+                selectedCoursesDiv.appendChild(courseInfo);
+            });
+        }
+
+        savePdfBtn.addEventListener('click', function () {
+            const pdfContent = document.createElement('div');
+            pdfContent.innerHTML = `
+                <div class="pdf-container">
+                    <h1 style="text-align: center;">課表</h1>
+                    <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <thead>
+                            <tr>
+                                <th>時間/星期</th>
+                                <th>星期一</th>
+                                <th>星期二</th>
+                                <th>星期三</th>
+                                <th>星期四</th>
+                                <th>星期五</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${scheduleTable.querySelector('tbody').innerHTML}
+                        </tbody>
+                    </table>
+                    <p style="text-align: center;">總學分：${totalCredits}</p>
+                </div>
+            `;
+
+            html2pdf().set({
+                margin: [5, 5, 5, 5],
+                filename: '課表.pdf',
+                image: { type: 'jpeg', quality: 1 }, // 設定最高質量
+                html2canvas: { scale: 2 }, // 提高縮放比例
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(pdfContent).save();
+
+
+
+
+            alert(`總學分：${totalCredits}`);
+        });
+
+        addCourseBtn.addEventListener('click', addCourse);
+        populateCourses();
+        createScheduleTable();
+    </script>
+</body>
+
+</html>

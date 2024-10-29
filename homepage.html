@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<head>
+    <meta charset="utf-8">
+    <title>首頁</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script async src="https://cse.google.com/cse.js?cx=54360293f1a554acf"></script> <!-- PSE API -->
+    <style>
+        .carousel-inner img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm bg-light">
+            <div class="container-fluid">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">
+                            <img src="/RollCall/images/p12.png" class="img-fluid"
+                                 style="width: 40px; height: 40px;" alt="首頁">
+                        </a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="http://127.0.0.1:5500/1020loginst.html">學生專區</a>
+                    </li>
+                    <li class="nav-item mt-2">
+                        <a class="nav-link" href="http://127.0.0.1:5500/1020loginte.html">教職員專區</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <!-- Google Search Engine 的嵌入區域 -->
+                        <div class="gcse-searchbox-only"></div> <!-- 搜尋框 -->
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+    </header>
+
+    <div class="container">
+        <div id="ExampleIndicators" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#ExampleIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#ExampleIndicators" data-slide-to="1"></li>
+                <li data-target="#ExampleIndicators" data-slide-to="2"></li>
+                <li data-target="#ExampleIndicators" data-slide-to="3"></li>
+                <li data-target="#ExampleIndicators" data-slide-to="4"></li>
+                <li data-target="#ExampleIndicators" data-slide-to="5"></li>
+                <li data-target="#ExampleIndicators" data-slide-to="6"></li>
+            </ol>
+
+            <div class="carousel-inner">
+                <div class="carousel-item active" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 1</h5>
+                    </div>
+                    <img src="/RollCall/images/1_0.png" class="d-block" alt="banner 1" />
+                </div>
+                <div class="carousel-item" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 2</h5>
+                    </div>
+                    <img src="/RollCall/images/2_0.png" class="d-block" alt="banner 2" />
+                </div>
+                <div class="carousel-item" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 3</h5>
+                    </div>
+                    <img src="/RollCall/images/3_0.png" class="d-block" alt="banner 3" />
+                </div>
+                <div class="carousel-item" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 4</h5>
+                    </div>
+                    <img src="/RollCall/images/4_0.png" class="d-block" alt="banner 4" />
+                </div>
+                <div class="carousel-item" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 5</h5>
+                    </div>
+                    <img src="/RollCall/images/5_0.png" class="d-block" alt="banner 5" />
+                </div>
+                <div class="carousel-item" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 6</h5>
+                    </div>
+                    <img src="/RollCall/images/6_0.png" class="d-block" alt="banner 6" />
+                </div>
+                <div class="carousel-item" data-interval="3000">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>投影片 7</h5>
+                    </div>
+                    <img src="/RollCall/images/7_0.png" class="d-block" alt="banner 7" />
+                </div>
+            </div>
+            <a class="carousel-control-prev" href="#ExampleIndicators" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#ExampleIndicators" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container mt-4">
+            <h4>學生公佈欄</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>公告標題</th>
+                            <th>公告內容</th>
+                        </tr>
+                    </thead>
+                    <tbody id="announcement-footer"></tbody> <!-- 用來顯示資料的容器 -->
+                </table>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        $(document).ready(function () {
+            function fetchAnnouncements() {
+                $.ajax({
+                    url: 'http://localhost:8080/api/board/title/announcement',
+                    method: 'GET',
+                    success: function (data) {
+                        // 清空現有的內容
+                        $('#announcement-footer').empty();
+
+                        // 遍歷每個公佈欄，並顯示 title 和 content
+                        data.forEach(function (board) {
+                            $('#announcement-footer').append(`
+                                <tr>
+                                    <td>${board.title}</td>
+                                    <td>${board.content}</td>
+                                </tr>
+                            `);
+                        });
+                    },
+                    error: function () {
+                        $('#announcement-footer').html('<tr><td colspan="2">無法獲取公佈欄內容。</td></tr>');
+                    }
+                });
+            }
+
+            // 每隔幾秒刷新一次資料
+            setInterval(fetchAnnouncements, 5000); // 每5秒請求一次
+            fetchAnnouncements(); // 初始請求
+        });
+    </script>
+
+</body>
+
+</html>

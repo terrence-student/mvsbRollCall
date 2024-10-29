@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公佈欄系統</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        /* 自訂表格樣式 */
+        .table-responsive {
+            max-height: 400px;
+            /* 設定表格最大高度 */
+            overflow-y: auto;
+            /* 開啟垂直滾動條 */
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header text-center my-4">
+        <a href="http://127.0.0.1:5500/homepage.html">
+            <img src="/images/newlogo.png" alt="Logo" class="img-fluid"><!--圖片要改-->
+        </a>
+    </header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">公佈欄系統</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="切換導航">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">
+                        首頁
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarModify" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        公佈欄
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarModify">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addModal">新增公佈欄</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#updateModal">修改公佈欄</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteModal">刪除公佈欄</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarQuery" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        查詢
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarQuery">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#queryModal">查詢公佈欄</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#countModal">統計公佈欄數量</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#timeRangeModal">時間範圍查詢</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <!-- 登入按鈕區域 -->
+    <div class="row justify-content-end mt-3">
+        <div class="col-md-6 text-right">
+            <!-- Button to Open the Modal or Log Out -->
+            <button type="button" id="authButton" class="btn btn-outline-secondary d-flex align-items-center ml-auto"
+                data-toggle="modal" data-target="#myModal">
+                <img src="/images/p52.png" class="img-fluid" style="width: 35px; height: 35px; margin-top: 2%;"
+                    alt="登入">
+                <span id="authButtonText">登入</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- 新增公佈欄 Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">新增公佈欄</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addForm">
+                        <div class="form-group">
+                            <label for="teacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="teacherId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">標題</label>
+                            <input type="text" class="form-control" id="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="content">內容</label>
+                            <textarea class="form-control" id="content" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="addBoard()">新增</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改公佈欄 Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModalLabel">修改公佈欄</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm">
+                        <div class="form-group">
+                            <label for="updateBoardId">公佈欄編號</label>
+                            <input type="number" class="form-control" id="updateBoardId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateTeacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="updateTeacherId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateTitle">新標題</label>
+                            <input type="text" class="form-control" id="updateTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateContent">新內容</label>
+                            <textarea class="form-control" id="updateContent" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="updateBoard()">修改</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除公佈欄 Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">刪除公佈欄</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="deleteForm">
+                        <div class="form-group">
+                            <label for="deleteBoardId">公佈欄編號</label>
+                            <input type="number" class="form-control" id="deleteBoardId" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="deleteBoard()">刪除</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查詢公佈欄 Modal -->
+    <div class="modal fade" id="queryModal" tabindex="-1" role="dialog" aria-labelledby="queryModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="queryModalLabel">查詢公佈欄</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="queryForm">
+                        <div class="form-group">
+                            <label for="queryTeacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="queryTeacherId" required>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-primary" onclick="queryBoard()">查詢</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計公佈欄數量 Modal -->
+    <div class="modal fade" id="countModal" tabindex="-1" role="dialog" aria-labelledby="countModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="countModalLabel">統計公佈欄數量</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="countForm">
+                        <div class="form-group">
+                            <label for="countTeacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="countTeacherId" required>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-primary" onclick="countBoard()">統計</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 時間範圍查詢 Modal -->
+    <div class="modal fade" id="timeRangeModal" tabindex="-1" role="dialog" aria-labelledby="timeRangeModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="timeRangeModalLabel">時間範圍查詢</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="timeRangeForm">
+                        <div class="form-group">
+                            <label for="startTime">開始時間</label>
+                            <input type="datetime-local" class="form-control" id="startTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">結束時間</label>
+                            <input type="datetime-local" class="form-control" id="endTime" required>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-primary" onclick="queryBoardByTimeRange()">查詢</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查詢結果表格 -->
+    <div class="container mt-5">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>編號</th>
+                        <th>教職員號碼</th>
+                        <th>標題</th>
+                        <th>內容</th>
+                        <th>時間</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- 查詢結果將顯示在這裡 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 檢查使用者是否已登入
+        const loggedIn = localStorage.getItem("teacher_username");
+
+        if (loggedIn) {
+            // 已登入，將按鈕文字改為登出
+            document.getElementById("authButtonText").textContent = "登出";
+            // 移除開啟登入Modal的屬性
+            document.getElementById("authButton").removeAttribute("data-toggle");
+            document.getElementById("authButton").removeAttribute("data-target");
+            // 為按鈕新增登出功能
+            document.getElementById("authButton").addEventListener("click", function () {
+                // 移除localStorage中的username
+                localStorage.removeItem("username");
+                // 提示使用者已成功登出
+                alert("已成功登出");
+                // 按鈕文字恢復為登入
+                document.getElementById("authButtonText").textContent = "登入";
+                // 重新加載頁面
+                window.location.reload();
+            });
+        }
+
+        // 新增公佈欄
+        function addBoard() {
+            const teacherid = parseInt(document.getElementById('teacherId').value); // 转换为整数
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const currentTime = formatDateTime(new Date()); // 獲取格式化的當前時間
+
+            const boardData = {
+                teacherid: teacherid,
+                title: title,
+                content: content,
+                time: currentTime // 确保这里的格式是正确的
+            };
+
+            fetch('http://localhost:8080/api/board/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(boardData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('新增成功!');
+                    $('#addModal').modal('hide');
+                    document.getElementById('addForm').reset();
+                    fetchAllBoards(); // 更新表格
+                })
+                .catch(error => {
+                    alert('新增失敗: ' + error.message);
+                });
+        }
+
+        // 修改公佈欄
+        function updateBoard() {
+            const boardid = document.getElementById('updateBoardId').value;
+            const boardData = {
+                title: document.getElementById('updateTitle').value,
+                content: document.getElementById('updateContent').value,
+                teacherid: parseInt(document.getElementById('updateTeacherId').value) // 转换为整数
+            };
+
+            fetch(`http://localhost:8080/api/board/${boardid}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(boardData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('更新成功!');
+                    $('#updateModal').modal('hide');
+                    document.getElementById('updateForm').reset();
+                    fetchAllBoards(); // 更新表格
+                })
+                .catch(error => {
+                    alert('更新失敗: ' + error.message);
+                });
+        }
+
+        // 刪除公佈欄
+        function deleteBoard() {
+            const boardid = document.getElementById('deleteBoardId').value;
+
+            fetch(`http://localhost:8080/api/board/${boardid}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(() => {
+                    alert('刪除成功!');
+                    $('#deleteModal').modal('hide');
+                    document.getElementById('deleteForm').reset();
+                    fetchAllBoards(); // 更新表格
+                })
+                .catch(error => {
+                    alert('刪除失敗: ' + error.message);
+                });
+        }
+
+        // 獲取所有 Board 記錄
+        function fetchAllBoards() {
+            fetch('http://localhost:8080/api/board/all')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultsBody = document.getElementById('resultsBody'); // 确保存在这个 ID 的元素
+                    resultsBody.innerHTML = ''; // 清空之前的查詢結果
+
+                    data.forEach(board => {
+                        const formattedTime = formatDateTime(board.time); // 確保格式化時間
+                        resultsBody.innerHTML += `
+                    <tr>
+                        <td>${board.boardid}</td>
+                        <td>${board.teacherid}</td>
+                        <td>${board.title}</td>
+                        <td>${board.content}</td>
+                        <td>${formattedTime}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="openUpdateModal(${board.boardid}, ${board.teacherid}, '${board.title}', '${board.content}')">修改</button>
+                            <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${board.boardid})">刪除</button>
+                        </td>
+                    </tr>
+                `;
+                    });
+                })
+                .catch(error => {
+                    alert('獲取記錄失敗: ' + error.message);
+                });
+        }
+
+        // 打开修改公佈欄的 Modal
+        function openUpdateModal(boardid, teacherid, title, content) {
+            document.getElementById('updateBoardId').value = boardid;
+            document.getElementById('updateTeacherId').value = teacherid;
+            document.getElementById('updateTitle').value = title;
+            document.getElementById('updateContent').value = content;
+            $('#updateModal').modal('show'); // 显示修改 Modal
+        }
+
+        // 打开刪除公佈欄的 Modal
+        function openDeleteModal(boardid) {
+            document.getElementById('deleteBoardId').value = boardid;
+            $('#deleteModal').modal('show'); // 显示删除 Modal
+        }
+
+
+
+
+        // 在頁面加載時獲取所有 Board 記錄
+        window.onload = fetchAllBoards;
+
+
+        // 查詢公佈欄
+        function queryBoard() {
+            const teacherid = document.getElementById('queryTeacherId').value;
+
+            fetch(`http://localhost:8080/api/board/teacher/${teacherid}`, {
+                method: 'GET'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultsBody = document.getElementById('resultsBody');
+                    resultsBody.innerHTML = ''; // 清空之前的查詢結果
+
+                    data.forEach(board => {
+                        resultsBody.innerHTML += `
+                <tr>
+                    <td>${board.boardid}</td>
+                    <td>${board.teacherid}</td>
+                    <td>${board.title}</td>
+                    <td>${board.content}</td>
+                    <td>${board.time}</td>
+                </tr>
+            `;
+                    });
+
+                    alert(`找到 ${data.length} 條記錄`);
+                    $('#queryModal').modal('hide');
+                    document.getElementById('queryForm').reset();
+                })
+                .catch(error => {
+                    alert('查詢失敗: ' + error.message);
+                });
+        }
+
+        // 統計公佈欄數量
+        function countBoard() {
+            const teacherid = document.getElementById('countTeacherId').value;
+
+            fetch(`http://localhost:8080/api/board/count/${teacherid}`, {
+                method: 'GET'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(count => {
+                    alert(`教師 ID ${teacherid} 擁有 ${count} 條公佈欄`);
+                    $('#countModal').modal('hide');
+                    document.getElementById('countForm').reset();
+                })
+                .catch(error => {
+                    alert('統計失敗: ' + error.message);
+                });
+        }
+
+
+
+        // 時間範圍查詢 
+        function queryBoardByTimeRange() {
+            const startTime = formatDateTime(document.getElementById('startTime').value);
+            const endTime = formatDateTime(document.getElementById('endTime').value);
+
+            // 使用相對路徑
+            const apiUrl = `http://localhost:8080/api/board/timerange?start=${startTime}&end=${endTime}`;
+            console.log(apiUrl); // Debug log
+
+            fetch(apiUrl, {
+                method: 'GET'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const resultsBody = document.getElementById('resultsBody');
+                    resultsBody.innerHTML = ''; // 清空之前的查詢結果
+
+                    data.forEach(board => {
+                        const formattedTime = formatDateTime(board.time); // 確保格式化時間
+                        resultsBody.innerHTML += `
+                <tr>
+                    <td>${board.boardid}</td> <!-- 確保使用正確的屬性名稱 -->
+                    <td>${board.teacherid}</td>
+                    <td>${board.title}</td>
+                    <td>${board.content}</td>
+                    <td>${formattedTime}</td> <!-- 使用格式化后的时间 -->
+                </tr>
+                `;
+                    });
+
+                    alert(`找到 ${data.length} 條記錄`);
+                    $('#timeRangeModal').modal('hide');
+                    document.getElementById('timeRangeForm').reset();
+                })
+                .catch(error => {
+                    alert('查詢失敗: ' + error.message);
+                });
+        }
+
+        // 格式化日期時間到秒
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+
+            // 檢查 date 是否為有效日期
+            if (isNaN(date.getTime())) {
+                return ''; // 如果無效，返回空字符串
+            }
+
+            // 使用 toLocaleString 轉換為當地時區時間並格式化為 yyyy-MM-dd HH:mm:ss
+            const formattedDate = date.toLocaleString('zh-TW', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            // 將格式調整成 yyyy-MM-dd HH:mm:ss
+            return formattedDate.replace(/\//g, '-').replace(',', '').replace(/\s+/g, ' '); // 清理字符串
+        }
+
+
+    </script>
+
+</body>
+
+</html>

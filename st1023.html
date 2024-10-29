@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簽到點名</title>
+    <!-- 使用 Bootstrap 4 的正確版本 -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery 庫 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <!-- 最新編譯的 Bootstrap JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="header text-center my-4">
+            <img src="/images/newlogo.png" alt="Logo" class="img-fluid"><!--圖片要改-->
+        </header>
+
+        <!-- Navbar with Bootstrap 4 -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <!-- 首頁 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">首頁</a>
+                    </li>
+                    <!-- 學生專區 Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            學生專區
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="studentDropdown">
+                            <a class="dropdown-item" href="http://127.0.0.1:5500/attendance.html">點名簽到</a>
+                            <a class="dropdown-item" href="#">作業繳交區</a>
+                            <a class="dropdown-item" href="http://127.0.0.1:5500/boradstudent.html">公佈欄</a>
+                            <a class="dropdown-item" href="http://127.0.0.1:5500/1025testleave.html">請假系統</a>
+                            <a class="dropdown-item" href="http://127.0.0.1:5500/enrollment.html">選課系統</a>
+                            <a class="dropdown-item" href="http://127.0.0.1:5500/studentForm.html">個人資料修改</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- 登入按鈕區域 -->
+        <div class="row justify-content-end mt-3">
+            <div class="col-md-6 text-right">
+                <!-- Button to Open the Modal or Log Out -->
+                <button type="button" id="authButton"
+                    class="btn btn-outline-secondary d-flex align-items-center ml-auto" data-toggle="modal"
+                    data-target="#myModal">
+                    <img src="/images/p52.png" class="img-fluid" style="width: 35px; height: 35px; margin-top: 2%;"
+                        alt="登入">
+                    <span id="authButtonText">登入</span>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Main content -->
+        <div class="text-center mb-4">
+            <h3>線上點名</h3>
+        </div>
+        <main class="classroom text-center mb-4">
+            <div class="teacher">
+                <img src="/images/p11.png" alt="Teacher" class="img-fluid">
+            </div>
+        </main>
+
+        <div class="container">
+            <div class="d-flex justify-content-center">
+                <button id="reportButton" class="btn btn-primary btn-lg">報到</button>
+            </div>
+            <div id="statusDisplay" class="mt-4 p-3 bg-light border rounded"></div>
+        </div>
+
+        <!-- Result display -->
+        <div id="result" class="text-center mt-4"></div>
+    </div>
+
+    <script>
+
+        // 檢查使用者是否已登入
+        const loggedIn = localStorage.getItem("student_username");
+
+        if (loggedIn) {
+            // 已登入，將按鈕文字改為登出
+            document.getElementById("authButtonText").textContent = "登出";
+            // 移除開啟登入Modal的屬性
+            document.getElementById("authButton").removeAttribute("data-toggle");
+            document.getElementById("authButton").removeAttribute("data-target");
+            // 為按鈕新增登出功能
+            document.getElementById("authButton").addEventListener("click", function () {
+                // 移除localStorage中的username
+                localStorage.removeItem("username");
+                // 提示使用者已成功登出
+                alert("已成功登出");
+                // 按鈕文字恢復為登入
+                document.getElementById("authButtonText").textContent = "登入";
+                // 重新加載頁面
+                window.location.reload();
+            });
+        }
+        let studentData = {};
+
+        // 在頁面加載時自動從後端抓取學生資料
+        document.addEventListener('DOMContentLoaded', () => {
+            const username = localStorage.getItem('student_username');
+            if (username) {
+                fetch(`http://localhost:8080/api/attendance/getSingleStudentData?username=${username}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            studentData = {
+                                studentId: data[0].studentid, // 確保這裡和後端匹配
+                                name: data[0].name
+                            };
+                        } else {
+                            document.getElementById('statusDisplay').innerText = '未找到學生資料，請重新登入。';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('獲取學生資料失敗:', error);
+                        document.getElementById('statusDisplay').innerText = '獲取學生資料失敗，請稍後再試。';
+                    });
+            } else {
+                document.getElementById('statusDisplay').innerText = '請先登入。';
+            }
+        });
+
+        // 學生報到函數
+        function reportAttendance() {
+            const teacherIp = localStorage.getItem('teacherIp');
+            const startTime = parseInt(localStorage.getItem('startTime'), 10);
+
+            if (!teacherIp || !startTime) {
+                document.getElementById('statusDisplay').innerText = '老師尚未開啟點名，無法報到。';
+                return;
+            }
+
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    const studentIp = data.ip;
+                    const currentTime = new Date().getTime();
+                    const elapsedMinutes = (currentTime - startTime) / 60000; // 計算經過時間，單位分鐘
+                    let status = '';
+
+                    if (studentIp === teacherIp) {
+                        if (elapsedMinutes <= 3) {
+                            status = '出席';
+                        } else if (elapsedMinutes <= 5) {
+                            status = '遲到';
+                        } else {
+                            status = '缺席';
+                        }
+
+                        document.getElementById('statusDisplay').innerText = `IP ${studentIp} 報到狀態：${status}。`;
+
+                        // 構建要發送到後端的資料
+                        const attendanceData = {
+                            studentId: studentData.studentId, // 確保這裡有正確的值
+                            name: studentData.name,
+                            status: status
+                        };
+
+                        // 發送報到資料到後端
+                        fetch('http://localhost:8080/api/attendance/report', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(attendanceData)
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('報到失敗');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('報到成功:', data);
+                            })
+                            .catch(error => {
+                                console.error('報到失敗:', error);
+                                document.getElementById('statusDisplay').innerText = '報到失敗，請稍後再試。';
+                            });
+                    } else {
+                        document.getElementById('statusDisplay').innerText = `IP ${studentIp} 與老師IP不符，報到無效。`;
+                    }
+                })
+                .catch(error => {
+                    console.error('獲取IP錯誤:', error);
+                    document.getElementById('statusDisplay').innerText = '獲取IP失敗，無法進行報到。';
+                });
+        }
+
+        document.getElementById('reportButton').onclick = reportAttendance;
+    </script>
+</body>
+
+</html>

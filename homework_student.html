@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生作業系統</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        /* 自訂表格樣式 */
+        .table-responsive {
+            max-height: 400px;
+            /* 設定表格最大高度 */
+            overflow-y: auto;
+            /* 開啟垂直滾動條 */
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">學生作業系統</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="切換導航">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">
+                        首頁
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+
+
+
+
+    <!-- Modal for file upload -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadModalLabel">上傳作業</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadForm">
+                        <!-- 隱藏的作業 ID -->
+                        <input type="hidden" id="homeworkid" name="homeworkid"> <!-- 隱藏的 homeworkId -->
+
+                        <div class="mb-3">
+                            <label for="myfileUpload" class="form-label">選擇檔案</label>
+                            <input type="file" class="form-control" id="myfileUpload" name="myfileUpload" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">上傳作業</button>
+                    </form>
+                    <div id="msg" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- 確認送出模態框 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeConfirmModal()">&times;</span>
+            <p>送出後就無法再做更改，請確定?</p>
+            <button id="confirmYes" class="btn btn-danger">確定</button>
+            <button class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+        </div>
+    </div>
+
+
+
+    <!-- 作業內容的 Modal -->
+    <div class="modal fade" id="homeworkModal" tabindex="-1" role="dialog" aria-labelledby="homeworkModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="homeworkModalLabel">作業內容</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="homeworkModalContent"
+                        style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;"></div>
+                    <!-- 這裡用來顯示作業內容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查詢結果表格 -->
+    <div class="container mt-5">
+        <div class="table-responsive">
+            <table class="table table-striped" style="white-space: nowrap; min-width: 1000px;">
+                <thead>
+                    <tr>
+                        <th>作業編號</th>
+                        <th>老師名稱</th>
+                        <th>課程名稱</th>
+                        <th>標題</th>
+                        <th>內容</th>
+                        <th>作業建立時間</th>
+                        <th>作業截止日</th>
+                        <th>分數</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- 查詢結果將顯示在這裡 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+
+
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const username = localStorage.getItem("student_username"); // 從 localStorage 取得用戶名
+
+            if (username) {
+                try {
+                    // 根據用戶名獲取學生資料
+                    const studentResponse = await fetch(`http://localhost:8080/getSingleStudentData?username=${username}`);
+                    if (studentResponse.ok) {
+                        const studentData = await studentResponse.json();
+                        const studentId = studentData.studentid; // 獲取學生ID
+
+                        // 發送 GET 請求以獲取所有作業資料
+                        const response = await fetch('http://localhost:8080/homework/all');
+                        if (response.ok) {
+                            const homeworkList = await response.json();
+                            const resultsBody = document.getElementById('resultsBody');
+
+                            // 清空現有的表格內容
+                            resultsBody.innerHTML = '';
+
+                            // 收集所有需要查詢的 teacherId
+                            const teacherIds = [...new Set(homeworkList.map(hw => hw.teacherid))]; // 去重，避免重複查詢
+
+                            // 發送批量查詢請求以獲取所有老師的名稱
+                            const teacherResponses = await Promise.all(
+                                teacherIds.map(id =>
+                                    fetch(`http://localhost:8080/homework/student/getSingleTeacherData?teacherid=${id}`)
+                                        .then(res => res.ok ? res.text() : '未知')
+                                )
+                            );
+
+                            // 建立 teacherId 與 teacherName 的映射
+                            const teacherMap = {};
+                            teacherIds.forEach((id, index) => {
+                                teacherMap[id] = teacherResponses[index];
+                            });
+
+                            // 檢查每個作業的上傳狀態
+                            await Promise.all(homeworkList.map(async homework => {
+                                // 使用 checkSubmission 方法檢查是否已提交作業
+                                const submittedResponse = await fetch(`http://localhost:8080/homework/student/checkSubmission?studentId=${studentId}&homeworkId=${homework.homeworkid}`);
+                                if (submittedResponse.ok) {
+                                    const hasSubmitted = await submittedResponse.json(); // 獲取提交狀態
+                                    homework.uploaded = hasSubmitted; // 更新作業上傳狀態
+                                }
+                            }));
+
+                            const currentDate = new Date(); // 獲取當前時間
+
+                            // 建立表格行
+                            const rows = await Promise.all(homeworkList.map(async homework => {
+                                const row = document.createElement('tr');
+                                row.setAttribute('data-homeworkid', homework.homeworkid); // 這裡添加了 data-homeworkid 屬性
+                                const teacherName = teacherMap[homework.teacherid] || '未知';
+                                const dueDate = new Date(homework.due_date); // 獲取截止時間
+                                let uploadStatus;
+
+                                // 判斷上傳狀態和截止時間
+                                if (homework.uploaded) {
+                                    uploadStatus = '已上傳';
+                                } else if (currentDate > dueDate) {
+                                    uploadStatus = '無法上傳';
+                                } else {
+                                    uploadStatus = '未上傳';
+                                }
+
+                                // 獲取分數
+                                const score = await fetchScore(studentId, homework.homeworkid);
+
+                                row.innerHTML = `
+                            <td>${homework.homeworkid}</td>
+                            <td>${teacherName}</td>
+                            <td>${homework.classname}</td>
+                            <td>${homework.title}</td>
+                            <td><button class="btn btn-link" onclick="showHomeworkContent('${homework.homeworkcontent}')">查看內容</button></td>
+                            <td>${new Date(homework.created_at).toLocaleString()}</td>
+                            <td>${new Date(homework.due_date).toLocaleDateString()}</td>
+                            <td>${score === null || score === -1 ? '未批改' : score}</td> <!-- 添加分數欄位 -->
+                            <td class="upload-status">${homework.uploaded ? '已上傳' : '未上傳'}</td>
+                            <td>
+                                <button class="btn btn-danger upload-btn" onclick="handleUpload(${homework.homeworkid}, '${homework.homeworkcontent}')" ${uploadStatus === '已上傳' || uploadStatus === '無法上傳' ? 'disabled' : ''}>上傳作業</button>
+                            </td>
+                        `;
+                                return row; // 返回行以便稍後插入
+                            }));
+
+                            // 將所有行插入到表格中
+                            rows.forEach(row => resultsBody.appendChild(row));
+
+                            // 更新上傳狀態
+                            homeworkList.forEach(homework => {
+                                updateUploadStatus(homework.homeworkid, homework.uploaded ? '已上傳' : (currentDate > new Date(homework.due_date) ? '無法上傳' : '未上傳'));
+                            });
+
+                        } else {
+                            console.error('無法獲取作業資料');
+                        }
+                    } else {
+                        console.error('無法獲取學生資料');
+                    }
+                } catch (error) {
+                    console.error('錯誤:', error);
+                }
+            }
+        });
+
+
+
+        function showHomeworkContent(content) {
+            document.getElementById('homeworkModalContent').textContent = content; // 填充內容
+            $('#homeworkModal').modal('show'); // 顯示模態視窗
+        }
+
+        // 定義函數以打開上傳模態並設置作業ID，然後上傳檔案
+        function handleUpload(homeworkIdforUpload, homeworkContent) {
+            // 將作業 ID 設置到隱藏的 input 中，以便上傳時使用
+            document.getElementById('homeworkid').value = homeworkIdforUpload;
+
+            // 可以在這裡將 homeworkContent 存儲到 sessionStorage 或其他地方
+            sessionStorage.setItem('homeworkcontent', homeworkContent);
+
+            // 顯示確認模態
+            $('#confirmModal').modal('show');
+
+            // 設置確定按鈕的事件
+            document.getElementById('confirmYes').onclick = function () {
+                // 關閉確認模態
+                $('#confirmModal').modal('hide');
+                // 顯示上傳模態
+                $('#uploadModal').modal('show');
+
+                // 移除舊的事件監聽器，避免重複註冊
+                const uploadForm = document.getElementById("uploadForm");
+                uploadForm.removeEventListener("submit", uploadHandler); // 確保不重複註冊
+                uploadForm.addEventListener("submit", uploadHandler); // 設定表單提交事件
+            };
+        }
+
+        function closeConfirmModal() {
+            $('#confirmModal').modal('hide'); // 關閉確認模態
+        }
+
+        /// 上傳檔案的處理函數
+        function uploadHandler(e) {
+            e.preventDefault(); // 停止觸發 submit
+
+            var form = document.getElementById("uploadForm");
+            var formData = new FormData(form); // 使用 FormData 包裝 form 表單資料
+
+            // 添加作業ID到 FormData
+            formData.append('homeworkid', document.getElementById('homeworkid').value);
+
+            // 獲取 file input 的檔案資料
+            const fileInput = document.getElementById('myfileUpload');
+            const files = fileInput.files; // 使用 input.files 來獲取檔案
+
+            if (files.length > 0) {
+                const file = files[0]; // 假設只上傳一個檔案
+
+                const studentUsername = localStorage.getItem('student_username');
+
+                // 根據 username 獲取單一學生資料
+                console.log('學生用戶名:', studentUsername); // 確認學生用戶名是否正確
+                fetch(`http://localhost:8080/getSingleStudentData?username=${studentUsername}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("無法獲取學生資料");
+                        }
+                        return response.json(); // 解析 JSON 數據
+                    })
+                    .then(studentData => {
+                        // 使用 studentData 確認資料是否存在
+                        console.log('獲取的學生資料:', studentData);
+                        const studentId = studentData.studentid; // 確認 studentId 的取得
+                        const studentName = studentData.name;
+                        const studentGrade = studentData.grade;
+
+                        // 確認 studentId 是否正確取得
+                        if (studentId) {
+                            // 拼接 studentId 和檔案名稱
+                            const fileName = `${studentId}_${file.name}`;
+                            alert("檔案名稱: " + fileName);
+
+                            // 更新 FormData 以包含新的檔案名稱
+                            formData.append('myfileUpload', new File([file], fileName)); // 用新的檔案名稱重新創建 File 物件並加到 formData 中
+                            formData.append('fileName', fileName); // 傳遞檔案名稱給後端
+
+                            // 這裡添加需要傳回的所有值
+                            const homeworkRow = document.querySelector(`tr[data-homeworkid="${document.getElementById('homeworkid').value}"]`);
+                            if (homeworkRow) {
+                                formData.append('homeworkid', homeworkRow.cells[0].textContent); // 假設 homeworkAccountid 在第一個單元格
+                                formData.append('teachername', homeworkRow.cells[1].textContent); // 假設 teachername 在第二個單元格
+                                formData.append('classname', homeworkRow.cells[2].textContent); // 假設 classname 在第三個單元格
+                                formData.append('title', homeworkRow.cells[3].textContent); // 假設 title 在第四個單元格
+                                // 從 sessionStorage 獲取作業內容
+                                const homeworkContent = sessionStorage.getItem('homeworkcontent');
+                                formData.append('homeworkcontent', homeworkContent ? homeworkContent : ''); // 使用 homeworkContent，若不存在則為空字串
+                                formData.append('studentid', studentId);
+                                formData.append('name', studentName);
+                                formData.append('grade', studentGrade);
+                            }
+
+                            fetch("http://localhost:8080/homework/student/fetchsave", { // 請求後端的 URL
+                                method: "POST",
+                                body: formData,
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error("檔案上傳失敗");
+                                    }
+                                    return response.text(); // 解析回應的文字
+                                })
+                                .then(data => {
+                                    document.getElementById("msg").innerHTML = `<div class="alert alert-success">${data}</div>`; // 顯示成功消息
+                                    $('#uploadModal').modal('hide'); // 上傳成功後關閉模態
+
+                                    const homeworkId = document.getElementById('homeworkid').value;
+                                    updateUploadStatus(homeworkId, "已上傳"); // 更新狀態為已上傳
+
+                                    // 顯示送出成功的提示
+                                    const messageContentElement = document.getElementById('messageContent');
+                                    if (messageContentElement) {
+                                        messageContentElement.innerHTML = `<strong>送出成功!</strong>`; // 設定訊息內容
+                                        $('#messageModal').modal('show'); // 顯示訊息模態
+                                    }
+                                })
+                                .catch(error => {
+                                    document.getElementById("msg").innerHTML = `<div class="alert alert-danger">檔案上傳失敗: ${error.message}</div>`;
+                                    console.error("Error:", error);
+                                });
+                        } else {
+                            alert("學生資料未正確取得，無法獲取 studentid");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("獲取學生資料時發生錯誤:", error);
+                    });
+            } else {
+                alert("請選擇一個檔案來上傳");
+            }
+        }
+
+
+        // 更新上傳狀態的函數
+        function updateUploadStatus(homeworkId, status) {
+            const rows = document.getElementById('resultsBody').getElementsByTagName('tr');
+            for (let row of rows) {
+                const homeworkIdCell = row.cells[0]; // 獲取作業ID單元格
+                if (homeworkIdCell.textContent == homeworkId) {
+                    const statusCell = row.querySelector('.upload-status'); // 獲取狀態單元格
+                    const uploadButton = row.querySelector('.upload-btn'); // 獲取上傳按鈕
+
+                    // 更新狀態文本
+                    statusCell.textContent = status;
+
+                    // 根據狀態更新按鈕
+                    if (status === '已上傳') {
+                        uploadButton.disabled = true; // 禁用上傳按鈕
+                        uploadButton.classList.remove("btn-danger"); // 移除紅色按鈕樣式
+                        uploadButton.classList.add("btn-secondary"); // 添加灰色按鈕樣式
+                        uploadButton.textContent = "已上傳"; // 更新按鈕文字
+                    } else if (status === '無法上傳') {
+                        uploadButton.disabled = true; // 禁用上傳按鈕
+                        uploadButton.classList.remove("btn-danger"); // 移除紅色按鈕樣式
+                        uploadButton.classList.add("btn-secondary"); // 添加灰色按鈕樣式
+                        uploadButton.textContent = "無法上傳"; // 更新按鈕文字
+                    } else {
+                        uploadButton.disabled = false; // 允許上傳
+                        uploadButton.classList.remove("btn-secondary"); // 移除灰色按鈕樣式
+                        uploadButton.classList.add("btn-danger"); // 添加紅色按鈕樣式
+                        uploadButton.textContent = "上傳作業"; // 更新按鈕文字
+                    }
+                    break; // 找到後跳出循環
+                }
+            }
+        }
+        // 獲取分數的函數
+        async function fetchScore(studentId, homeworkId) {
+            try {
+                const response = await fetch(`http://localhost:8080/homework/student/getStudentScore?studentId=${studentId}&homeworkId=${homeworkId}`);
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                const data = await response.json();
+                return data.score; // 假設後端返回的 JSON 中有一個 `score` 屬性
+            } catch (error) {
+                console.error('Error fetching score:', error);
+                return null; // 返回空值以便後續處理
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

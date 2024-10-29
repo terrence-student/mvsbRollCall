@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教職員作業系統</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        /* 自訂表格樣式 */
+        .table-responsive {
+            max-height: 400px;
+            /* 設定表格最大高度 */
+            overflow-y: auto;
+            /* 開啟垂直滾動條 */
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">教職員作業系統</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="切換導航">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="http://127.0.0.1:5500/homepage.html">
+                        首頁
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarModify" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        作業
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarModify">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#addModal">新增作業</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#updateModal" onclick="clearUpdateFields()">修改作業</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteModal">刪除作業</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarQuery" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        查詢
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarQuery">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#queryModal">查詢作業</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#countModal">統計作業數量</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#timeRangeModal">時間範圍查詢</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <!-- 新增作業 Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">新增作業</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addForm">
+                        <div class="form-group">
+                            <label for="teacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="teacherId" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">課程名稱</label>
+                            <input type="text" class="form-control" id="classname" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="title">標題</label>
+                            <input type="text" class="form-control" id="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="due_date">作業截止日</label>
+                            <input type="date" class="form-control" id="due_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="content">內容</label>
+                            <textarea class="form-control" id="content" rows="3" required></textarea>
+                        </div>
+                        
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="addHomework()">新增</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改作業 Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModalLabel">修改作業</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm">
+                        <div class="form-group">
+                            <label for="updateHomeworkId">作業編號</label>
+                            <input type="number" class="form-control" id="updateHomeworkId" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="updateTeacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="updateTeacherId" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateTeacherId">課程名稱</label>
+                            <input type="text" class="form-control" id="updateClassname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateTitle">新標題</label>
+                            <input type="text" class="form-control" id="updateTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">作業截止日</label>
+                            <input type="date" class="form-control" id="updatedue_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateContent">新內容</label>
+                            <textarea class="form-control" id="updateContent" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="updateHomework()">修改</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 刪除作業 Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">刪除作業</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="deleteForm">
+                        <div class="form-group">
+                            <label for="deleteBoardId">作業編號</label>
+                            <input type="number" class="form-control" id="deleteHomeworkId" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="deleteHomework()">刪除</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查詢作業 Modal -->
+    <div class="modal fade" id="queryModal" tabindex="-1" role="dialog" aria-labelledby="queryModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="queryModalLabel">查詢作業</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="queryForm">
+                        <div class="form-group">
+                            <label for="queryKeyword">關鍵字</label>
+                            <input type="text" class="form-control" id="queryKeyword" required>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-primary" onclick="queryHomework()">查詢</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計作業數量 Modal -->
+    <div class="modal fade" id="countModal" tabindex="-1" role="dialog" aria-labelledby="countModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="countModalLabel">統計作業數量</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="countForm">
+                        <div class="form-group">
+                            <label for="countTeacherId">教職員號碼</label>
+                            <input type="text" class="form-control" id="countTeacherId" required>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-primary" onclick="countHomework()">統計</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 時間範圍查詢 Modal -->
+    <div class="modal fade" id="timeRangeModal" tabindex="-1" role="dialog" aria-labelledby="timeRangeModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="timeRangeModalLabel">時間範圍查詢</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="timeRangeForm">
+                        <div class="form-group">
+                            <label for="startTime">開始時間</label>
+                            <input type="date" class="form-control" id="startTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">結束時間</label>
+                            <input type="date" class="form-control" id="endTime" required>
+                        </div>
+                    </form>
+                    <button type="button" class="btn btn-primary" onclick="queryHomeworkByTimeRange()">查詢</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 作業內容的 Modal -->
+    <div class="modal fade" id="homeworkModal" tabindex="-1" role="dialog" aria-labelledby="homeworkModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="homeworkModalLabel">作業內容</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="關閉">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="homeworkModalContent" style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;"></div> <!-- 這裡用來顯示作業內容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <!-- 查看學生提交狀況 Modal -->
+<div class="modal fade" id="studentModal" tabindex="-1" role="dialog" aria-labelledby="studentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document"> <!-- 使用 modal-lg 類別使 Modal 更大 -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="studentModalLabel">學生提交狀況</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="studentModalContent" style="overflow-x: auto;"> <!-- 添加 overflow-x: auto; 以允許橫向滾動 -->
+                    <!-- 表格內容會在這裡動態填充 -->
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批改分數模態框 -->
+<div class="modal fade" id="gradeModal" tabindex="-1" aria-labelledby="gradeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gradeModalLabel">批改分數</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="gradeModalContent">
+                <!-- 這裡會填充新的分數輸入內容 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+   <!-- 查詢結果表格 -->
+<div class="container mt-5">
+    <div class="table-responsive">
+        <table class="table table-striped" style="white-space: nowrap; min-width: 1000px;">
+            <thead>
+                <tr>
+                    <th>作業編號</th>
+                    <th>教職員號碼</th>
+                    <th>課程名稱</th>
+                    <th>標題</th>
+                    <th>內容</th>
+                    <th>作業建立時間</th>
+                    <th>作業截止日</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <!-- 查詢結果將顯示在這裡 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+    <script>
+
+
+
+document.addEventListener('DOMContentLoaded', async function () {
+    const username = localStorage.getItem("teacher_username"); // 從 localStorage 取得用戶名
+    if (username) {
+        try {
+            const response = await fetch(`http://localhost:8080/teachers/getSingleTeacherData?username=${encodeURIComponent(username)}`);
+            if (response.ok) {
+                const teachers = await response.json();
+                if (teachers.length > 0) {
+                    const teacher = teachers[0]; // 假設返回的是一個老師的資料
+                    localStorage.setItem('teacherID', teacher.teacherId); // 確保這裡的 teacherid 是正確的
+                    document.getElementById('teacherId').value = localStorage.getItem('teacherID');
+                    document.getElementById('updateTeacherId').value = localStorage.getItem('teacherID');
+                }
+            } else {
+                console.error('無法獲取老師資料');
+            }
+        } catch (error) {
+            console.error('錯誤:', error);
+        }
+    } else {
+        alert('無法取得用戶名');
+    }
+
+    try {
+        // 發送 GET 請求以獲取所有作業資料
+        const response = await fetch('http://localhost:8080/homework/all');
+        if (response.ok) {
+            const homeworkList = await response.json();
+            const resultsBody = document.getElementById('resultsBody');
+
+            // 將作業列表資料插入到表格中
+            resultsBody.innerHTML = ''; // 清空現有的表格內容
+            homeworkList.forEach((homework) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${homework.homeworkid}</td> <!-- 使用 homeworkid 作為編號 -->
+                    <td>${homework.teacherid}</td>
+                    <td>${homework.classname}</td>
+                    <td>${homework.title}</td>
+                    <td><button class="btn btn-link" onclick="showHomeworkContent('${homework.homeworkcontent}')">查看內容</button></td>
+                    <td>${new Date(homework.created_at).toLocaleString()}</td> <!-- 顯示完整的 datetime -->
+                    <td>${new Date(homework.due_date).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="openUpdateModal(${homework.homeworkid}, '${homework.teacherid}', '${homework.classname}','${homework.title}', '${homework.due_date}', '${homework.homeworkcontent}')">修改</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${homework.homeworkid})">刪除</button>
+                         <button class="btn btn-info" onclick="showStudentModal(${homework.homeworkid})">查看學生作業</button> <!-- 更新為 showStudentModal -->
+                    </td>
+                `;
+                resultsBody.appendChild(row); // 將行加入到表格
+            });
+        } else {
+            console.error('無法獲取作業資料');
+        }
+    } catch (error) {
+        console.error('錯誤:', error);
+    }
+});
+
+
+function openDeleteModal(deleteHomeworkId) {
+    // 顯示確認對話框
+    const confirmation = confirm("確定要刪除這個作業嗎？");
+
+    if (confirmation) { // 如果用戶點擊"確定"
+        fetch(`http://localhost:8080/homework/${deleteHomeworkId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                // 不返回 JSON 數據，因此這裡不需要解析
+                return response.text(); // 只需獲取文本，這樣就不會出現錯誤
+            })
+            .then(() => {
+                alert('刪除成功!');
+                window.location.reload(); // 重新加載頁面
+                
+                // 這裡可以添加其他的刷新操作，例如重新加載頁面或更新作業列表
+            })
+            .catch(error => {
+                alert('刪除失敗: ' + error.message);
+            });
+    } else {
+        // 如果用戶選擇"取消"，可以選擇做其他操作或什麼也不做
+        console.log("刪除操作已被取消");
+    }
+}
+
+
+
+function showHomeworkContent(content) {
+    document.getElementById('homeworkModalContent').textContent = content; // 填充內容
+    $('#homeworkModal').modal('show'); // 顯示模態視窗
+}
+function openUpdateModal(homeworkId,teacherId,classname, title, dueDate, homeworkContent) {
+    // 設定模態中對應字段的值
+    document.getElementById('updateHomeworkId').value = homeworkId; // 設定作業編號
+    document.getElementById('updateTeacherId').value = teacherId; // 設定教職員號碼
+    document.getElementById('updateClassname').value = classname; // 設定課程名稱
+    document.getElementById('updateTitle').value = title; // 設定標題
+    document.getElementById('updatedue_date').value = dueDate.split('T')[0]; // 設定截止日期
+    document.getElementById('updateContent').value = homeworkContent; // 設定作業內容
+    
+    // 顯示模態
+    $('#updateModal').modal('show'); // 使用 jQuery 打開模態窗口
+}
+
+
+
+function addHomework() {
+
+
+    // 從表單獲取其他資料
+    const teacherid =localStorage.getItem('teacherID');
+    const classname=document.getElementById('classname').value;
+    const title = document.getElementById('title').value;
+    const homeworkcontentElement = document.getElementById('content'); // 獲取 textarea 元素
+    const homeworkcontentValue = homeworkcontentElement.value; // 獲取 textarea 的值
+    const EndTime = new Date(document.getElementById('due_date').value).toISOString().split('T')[0]; // 保留 YYYY-MM-DD
+
+     // 字數檢查
+     if (homeworkcontentValue.length > 255) {
+        homeworkcontentElement.setCustomValidity('字數需在255字之內！');
+        homeworkcontentElement.reportValidity(); // 觸發驗證提示
+        return; // 退出函數，避免發送請求
+    } else {
+        homeworkcontentElement.setCustomValidity(''); // 清除錯誤提示
+    }
+
+
+    const homeworkData = {
+        teacherid: teacherid, // 使用從 localStorage 獲取的 teacherid
+        classname:classname,
+        title: title,
+        homeworkcontent: homeworkcontentValue, // 使用 textarea 的值
+        due_date: EndTime,
+
+    };
+
+    fetch('http://localhost:8080/homework/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(homeworkData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert('新增成功!');
+        $('#addModal').modal('hide');
+        document.getElementById('addForm').reset();
+        window.location.reload(); // 重新加載頁面
+    })
+    .catch(error => {
+        alert('新增失敗: ' + error.message);
+    });
+}
+
+
+        // 修改作業
+        function updateHomework() {
+            const homewrokid = document.getElementById('updateHomeworkId').value;
+            const HomeworkData = {
+                title: document.getElementById('updateTitle').value,
+                classname: document.getElementById('updateClassname').value,
+                homeworkcontent: document.getElementById('updateContent').value,
+                teacherid: document.getElementById('updateTeacherId').value,
+                due_date: document.getElementById('updatedue_date').value
+                
+            };
+
+            fetch(`http://localhost:8080/homework/${homewrokid}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(HomeworkData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('更新成功!');
+                    $('#updateModal').modal('hide');
+                    document.getElementById('updateForm').reset();
+                    window.location.reload(); // 重新加載頁面
+                })
+                .catch(error => {
+                    alert('更新失敗: ' + error.message);
+                });
+        }
+
+
+        // 刪除作業
+        function deleteHomework() {
+            const homewrokid = document.getElementById('deleteHomeworkId').value;
+
+            fetch(`http://localhost:8080/homework/${homewrokid}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    // 不返回 JSON 數據，因此這裡不需要解析
+                    return response.text(); // 只需獲取文本，這樣就不會出現錯誤
+                })
+                .then(() => {
+                    alert('刪除成功!');
+                    $('#deleteModal').modal('hide');
+                    document.getElementById('deleteForm').reset();
+                    window.location.reload(); // 重新加載頁面
+                })
+                .catch(error => {
+                    alert('刪除失敗: ' + error.message);
+                });
+        }
+
+
+
+       // 查詢作業的函數
+    function queryHomework() {
+        const keyword = document.getElementById('queryKeyword').value; // 獲取關鍵字
+
+        fetch(`http://localhost:8080/homework/search?keyword=${keyword}`, {
+            method: 'GET'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = ''; // 清空之前的查詢結果
+
+            if (data.length === 0) {
+                resultsBody.innerHTML = '<tr><td colspan="5" class="text-center">沒有找到匹配的作業</td></tr>';
+            } else {
+                data.forEach(homework => {
+                    resultsBody.innerHTML += `
+                        <tr>
+                            <td>${homework.homeworkid}</td>
+                            <td>${homework.teacherid}</td>
+                            <td>${homework.classname}</td>
+                            <td>${homework.title}</td>
+                             <td><button class="btn btn-link" onclick="showHomeworkContent('${homework.homeworkcontent}')">查看內容</button></td>
+                             <td>${new Date(homework.created_at).toLocaleString()}</td> <!-- 顯示完整的 datetime -->
+                             <td>${new Date(homework.due_date).toLocaleDateString()}</td>
+                             <td>
+                             <td>
+                                <button class="btn btn-primary" onclick="openUpdateModal(${homework.homeworkid}, '${homework.teacherid}', '${homework.title}', '${homework.due_date}', '${homework.homeworkcontent}')">修改</button>
+                                <button class="btn btn-danger" onclick="openDeleteModal(${homework.homeworkid})">刪除</button>
+                            </td>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            // 隱藏模態框
+            $('#queryModal').modal('hide');
+        })
+        .catch(error => {
+            alert('查詢失敗: ' + error.message);
+        });
+    }
+
+        // 統計作業數量
+        function countHomework() {
+            const teacherid = document.getElementById('countTeacherId').value;
+
+            fetch(`http://localhost:8080/api/board/count/${teacherid}`, {
+                method: 'GET'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(count => {
+                    alert(`教師 ID ${teacherid} 擁有 ${count} 條公佈欄`);
+                    $('#countModal').modal('hide');
+                    document.getElementById('countForm').reset();
+                })
+                .catch(error => {
+                    alert('統計失敗: ' + error.message);
+                });
+        }
+
+
+
+        // 時間範圍查詢 
+        function queryHomeworkByTimeRange() {
+            const startTimeElement = document.getElementById('startTime');
+    const endTimeElement = document.getElementById('endTime');
+
+    const startTimeValue = startTimeElement.value;
+    const endTimeValue = endTimeElement.value;
+
+    // 檢查開始時間和結束時間是否為空
+    if (!startTimeValue || !endTimeValue) {
+        if (!startTimeValue) {
+            startTimeElement.setCustomValidity('開始時間不能為空！');
+        } else {
+            startTimeElement.setCustomValidity('');
+        }
+
+        if (!endTimeValue) {
+            endTimeElement.setCustomValidity('結束時間不能為空！');
+        } else {
+            endTimeElement.setCustomValidity('');
+        }
+
+        startTimeElement.reportValidity(); // 顯示錯誤提示
+        endTimeElement.reportValidity(); // 顯示錯誤提示
+        return; // 退出函數，避免發送請求
+    } else {
+        // 如果有效，清除錯誤提示
+        startTimeElement.setCustomValidity('');
+        endTimeElement.setCustomValidity('');
+    }
+
+    // 檢查開始時間是否大於結束時間
+    if (new Date(startTimeValue) >= new Date(endTimeValue)) {
+        startTimeElement.setCustomValidity('開始時間必須早於結束時間！');
+        endTimeElement.setCustomValidity('結束時間必須晚於開始時間！');
+        startTimeElement.reportValidity(); // 顯示錯誤提示
+        return; // 退出函數，避免發送請求
+    } else {
+        // 如果有效，清除錯誤提示
+        startTimeElement.setCustomValidity('');
+        endTimeElement.setCustomValidity('');
+    }
+
+    const startTime = formatDateTime(startTimeValue);
+    const endTime = formatDateTime(endTimeValue);
+
+    fetch(`http://localhost:8080/homework/filterByDate?starttime=${startTime}&endtime=${endTime}`, {
+        method: 'GET'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const resultsBody = document.getElementById('resultsBody');
+            resultsBody.innerHTML = ''; // 清空之前的查詢結果
+
+            data.forEach(homework => {
+                const formattedDate = formatDateTime(homework.created_at); // 確保格式化日期
+
+                resultsBody.innerHTML += `
+                    <tr>
+                            <td>${homework.homeworkid}</td>
+                            <td>${homework.teacherid}</td>
+                            <td>${homework.classname}</td>
+                            <td>${homework.title}</td>
+                             <td><button class="btn btn-link" onclick="showHomeworkContent('${homework.homeworkcontent}')">查看內容</button></td>
+                             <td>${new Date(homework.created_at).toLocaleString()}</td> <!-- 顯示完整的 datetime -->
+                             <td>${new Date(homework.due_date).toLocaleDateString()}</td>
+                             <td>
+                             <td>
+                                <button class="btn btn-primary" onclick="openUpdateModal(${homework.homeworkid}, '${homework.teacherid}', '${homework.title}', '${homework.due_date}', '${homework.homeworkcontent}')">修改</button>
+                                <button class="btn btn-danger" onclick="openDeleteModal(${homework.homeworkid})">刪除</button>
+                            </td>
+                            </td>
+                        </tr>
+                `;
+            });
+
+            alert(`找到 ${data.length} 條記錄`);
+            $('#timeRangeModal').modal('hide');
+            document.getElementById('timeRangeForm').reset();
+        })
+        .catch(error => {
+            alert('查詢失敗: ' + error.message);
+        });
+}
+
+function showStudentModal(homeworkId) {
+    
+
+    // 使用 API 獲取所有提交此作業的學生
+    fetch(`http://localhost:8080/homework/student/submissions?homeworkId=${homeworkId}`)
+    .then(response => {
+            // 檢查如果是 204，直接返回一個空的 Promise，不進行 json 解析
+            if (response.status === 204) {
+                alert("沒有學生提交此作業。");
+            }
+            
+            // 檢查是否為其他非 200 的錯誤
+            if (!response.ok) {
+                alert("Network response was not ok");
+            }
+
+            // 正常解析 JSON
+            return response.json();
+        })
+        .then(data => {
+            if (data.length === 0) {
+                alert("沒有學生提交此作業。");
+                return;
+            }
+
+            // 填充 modal 內容為一個表格
+            const content = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>學生 ID</th>
+                            <th>姓名</th>
+                            <th>作業檔案</th>
+                            <th>分數</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                   
+                    <tbody>
+                        
+                        ${data.map(student => `
+                            <tr>
+                                <td>${student.studentid}</td>
+                                <td>${student.name}</td>
+                                <td>${student.homework}</td>
+                                <td>${student.score === -1 ? '未批改' : student.score}</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="downloadHomework('${student.studentid}', '${homeworkId}')">下載</button>
+                                    <button class="btn btn-warning" onclick="showGradeModal('${student.studentid}', '${homeworkId}', ${student.score})">批改</button>    
+                                </td>
+                                
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('studentModalContent').innerHTML = content;
+
+            // 顯示 modal
+            $('#studentModal').modal('show');
+        })
+        .catch(error => {
+            console.error('Error fetching student data:', error);
+            document.getElementById('studentModalContent').innerHTML = '<p>獲取學生資料時出錯。</p>';
+        });
+}
+
+// 下載作業的函數
+function downloadHomework(studentId, homeworkId) {
+    // 發送請求到後端下載指定的檔案
+   
+    window.location.href = `http://localhost:8080/homework/student/download/${studentId}/${homeworkId}`;
+}
+
+// 顯示批改模態框
+function showGradeModal(studentId, homeworkId, currentScore) {
+    const modalContent = `
+        <div>
+            <label for="newScore">輸入新分數:</label>
+            <input type="number" id="newScore" value="${currentScore === -1 ? '' : currentScore}" />
+            <button class="btn btn-success" onclick="updateScore('${studentId}', ${homeworkId})">確定</button>
+            <button class="btn btn-secondary" onclick="$('#gradeModal').modal('hide')">取消</button>
+        </div>
+    `;
+    document.getElementById('gradeModalContent').innerHTML = modalContent;
+    $('#gradeModal').modal('show');
+}
+
+// 更新分數的函數
+function updateScore(studentId, homeworkId) {
+    const newScore = parseInt(document.getElementById('newScore').value, 10); // 確保轉換為整數
+    fetch(`http://localhost:8080/homework/student/grade/${studentId}/${homeworkId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ score: newScore })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("分數更新成功！");
+            $('#gradeModal').modal('hide');
+            // 可選：刷新學生列表
+            showStudentModal(homeworkId);
+        } else {
+            alert("studentId"+studentId);
+            alert("homeworkId"+homeworkId);
+            alert("newScore"+newScore);
+            alert("分數更新失敗！");
+        }
+    })
+    .catch(error => {
+        console.error('Error updating score:', error);
+    });
+}
+
+
+
+
+
+
+// 格式化日期，只返回 YYYY-MM-DD 格式
+function formatDateTime(date) {
+    const d = new Date(date);
+    return d.toISOString().slice(0, 10); // 只返回日期部分 YYYY-MM-DD
+}
+    
+       
+    function clearUpdateFields() {
+    document.getElementById('updateHomeworkId').value = ''; // 清空作業編號 
+    document.getElementById('updateTitle').value = ''; // 清空標題
+    document.getElementById('updatedue_date').value = ''; // 清空截止日期
+    document.getElementById('updateContent').value = ''; // 清空作業內容
+}
+
+
+
+       
+        </script>
+
+</body>
+
+</html>
